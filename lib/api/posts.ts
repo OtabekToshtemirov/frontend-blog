@@ -10,7 +10,12 @@ export interface TagCount {
 }
 
 export async function getPosts(sortBy: SortBy = 'latest'): Promise<Post[]> {
-  return getAllPosts();
+  const endpoint = sortBy === 'popular' ? '/posts/popular' : '/posts/latest';
+  const response = await fetch(`${API_URL}${endpoint}`)
+  if (!response.ok) {
+    throw new Error("Failed to fetch posts")
+  }
+  return await response.json()
 }
 
 export async function getPost(slug: string): Promise<Post> {
