@@ -57,6 +57,7 @@ export function PostList({ tag }: PostListProps) {
       setIsLoading(true)
       try {
         const data = tag ? await getPostsByTag(tag) : await getPosts(sortBy)
+        console.log(data)
         setPosts(data)
         fetchCommentCounts(data)
       } catch (error) {
