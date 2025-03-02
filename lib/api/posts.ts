@@ -169,3 +169,14 @@ export async function likePost(slug: string): Promise<Post> {
   return await response.json()
 }
 
+// getAllPosts funksiyasini qo'shish
+export async function getAllPosts(): Promise<Post[]> {
+  const response = await fetch(`${API_URL}/posts`)
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch all posts")
+  }
+
+  return await response.json()
+}
+
