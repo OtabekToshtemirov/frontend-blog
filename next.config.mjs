@@ -14,13 +14,26 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: ['localhost'],
+    // domains qatorini olib tashladik chunki u eskirgan
     remotePatterns: [
       {
         protocol: 'http',
         hostname: 'localhost',
         port: '5555',
         pathname: '/images/**',
+      },
+      // Backend serveringiz uchun qo'shilgan yangi pattern
+      {
+        protocol: 'https',
+        hostname: 'backend-blog-x4fs.onrender.com',
+        pathname: '/**',
+      },
+      // Lokal server uchun
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
       },
     ],
   },

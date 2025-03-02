@@ -229,7 +229,7 @@ export const translations: Translations = {
     n_views: (n: number) => `${n} ${n === 1 ? 'просмотр' : n < 5 ? 'просмотра' : 'просмотров'}`,
     days_ago: (n: number) => `${n} ${n === 1 ? 'день' : n < 5 ? 'дня' : 'дней'} назад`,
     hours_ago: (n: number) => `${n} ${n === 1 ? 'час' : n < 5 ? 'часа' : 'часов'} назад`,
-    minutes_ago: (n: number) => `${n} ${n === 1 ? 'минуту' : н < 5 ? 'минуты' : 'минут'} назад`,
+    minutes_ago: (n: number) => `${n} ${n === 1 ? 'минуту' : n < 5 ? 'минуты' : 'минут'} назад`,
     just_now: "только что",
     menu: "Меню",
     theme: "Тема",
