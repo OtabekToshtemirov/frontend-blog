@@ -1,16 +1,16 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { getPostsByTag } from "@/lib/api/posts"
+import { useState, useEffect } from "react"
 import { PostList } from "@/components/post-list"
 import { useTranslation } from "@/hooks/use-translation"
+import { getPostsByTag } from "@/lib/api/posts"
 import type { Post } from "@/lib/types"
 
 export default function TagPage({ params }: { params: { tag: string } }) {
   const [posts, setPosts] = useState<Post[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const { t } = useTranslation()
-  const { tag } = params
+  const tag = decodeURIComponent(params.tag)
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -18,7 +18,7 @@ export default function TagPage({ params }: { params: { tag: string } }) {
         const data = await getPostsByTag(tag)
         setPosts(data)
       } catch (error) {
-        console.error("Failed to fetch posts by tag:", error)
+        console.error("Failed to fetch posts:", error)
       } finally {
         setIsLoading(false)
       }
@@ -28,8 +28,8 @@ export default function TagPage({ params }: { params: { tag: string } }) {
   }, [tag])
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">#{tag}</h1>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">#{tag}</h1>
       <PostList posts={posts} isLoading={isLoading} />
     </div>
   )

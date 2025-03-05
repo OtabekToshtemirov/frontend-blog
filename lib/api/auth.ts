@@ -1,61 +1,30 @@
 import type { User } from "@/lib/types"
-import { API_URL } from "@/lib/constants"
+import { api } from "./axios"
 
 export async function register(userData: { fullname: string; email: string; password: string }) {
-  const response = await fetch(`${API_URL}/auth/register`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(userData),
-  })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || "Registration failed")
-  }
-
-  return await response.json()
+  const { data } = await api.post('/auth/register', userData);
+  return data;
 }
 
-// Rename to apiLogin to match the import in auth-context
 export const apiLogin = async (email: string, password: string) => {
-  const response = await fetch(`${API_URL}/auth/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ email, password }),
-  })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || "Login failed")
-  }
-
-  return await response.json()
+  const { data } = await api.post('/auth/login', { email, password });
+  return data;
 }
 
 // Keep the original login function for direct use
 export const login = apiLogin;
 
 export async function getMe(): Promise<User> {
-  const token = localStorage.getItem("token")
+  const { data } = await api.get('/auth/me');
+  return data;
+}
 
-  if (!token) {
-    throw new Error("No authentication token found")
-  }
+export async function updateProfile(userData: { fullname?: string; email?: string; password?: string }): Promise<User> {
+  const { data } = await api.patch('/auth/me', userData);
+  return data;
+}
 
-  const response = await fetch(`${API_URL}/auth/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-
-  if (!response.ok) {
-    throw new Error("Failed to get user data")
-  }
-
-  return await response.json()
+export async function deleteAccount(): Promise<void> {
+  await api.delete('/auth/me');
 }
 

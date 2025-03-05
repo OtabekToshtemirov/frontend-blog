@@ -153,16 +153,27 @@ export function PostList({ tag }: PostListProps) {
               </Link>
 
               <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
-                  <AvatarImage src={post.author.avatar || ""} alt={post.author.fullname} />
-                  <AvatarFallback>{post.author.fullname.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-xs sm:text-sm font-medium">{post.author.fullname}</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">
-                    {formatTimeAgo(post.createdAt, language)}
-                  </p>
-                </div>
+                {post.anonymous ? (
+                  <div>
+                    <p className="text-xs sm:text-sm font-medium">{post.anonymousAuthor}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">
+                      {formatTimeAgo(post.createdAt, language)}
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
+                      <AvatarImage src={post.author.avatar || ""} alt={post.author.fullname} />
+                      <AvatarFallback>{post.author.fullname.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-xs sm:text-sm font-medium">{post.author.fullname}</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground">
+                        {formatTimeAgo(post.createdAt, language)}
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="text-muted-foreground line-clamp-2 sm:line-clamp-3 mb-3 sm:mb-4 prose prose-xs sm:prose-sm dark:prose-invert">
@@ -204,20 +215,23 @@ export function PostList({ tag }: PostListProps) {
                         />
                       )}
                       <span className="text-[10px] sm:text-xs group-hover:text-red-500 transition-colors">
-                        {formatCount(post.likes.length, 'n_likes', language)}
+                        <span className="hidden sm:inline">{formatCount(post.likes.length, 'n_likes', language)}</span>
+                        <span className="sm:hidden">{post.likes.length}</span>
                       </span>
                     </div>
                   </Button>
                   <div className="flex items-center gap-1 text-muted-foreground">
                     <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4" />
                     <span className="text-[10px] sm:text-xs">
-                      {formatCount(commentCounts[post._id] || 0, 'n_comments', language)}
+                      <span className="hidden sm:inline">{formatCount(commentCounts[post._id] || 0, 'n_comments', language)}</span>
+                      <span className="sm:hidden">{commentCounts[post._id] || 0}</span>
                     </span>
                   </div>
                   <div className="flex items-center gap-1 text-muted-foreground">
                     <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                     <span className="text-[10px] sm:text-xs">
-                      {formatCount(post.views, 'n_views', language)}
+                      <span className="hidden sm:inline">{formatCount(post.views, 'n_views', language)}</span>
+                      <span className="sm:hidden">{post.views}</span>
                     </span>
                   </div>
                 </div>

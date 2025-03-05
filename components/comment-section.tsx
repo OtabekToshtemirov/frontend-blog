@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Edit2, Trash2, Loader2 } from "lucide-react"
+import { Edit2, Trash2, Loader2, User, MoreVertical, Edit } from "lucide-react"
 import { useAuth } from "@/context/auth-context"
 import { useToast } from "@/components/ui/use-toast"
 import { useLanguage } from "@/context/language-context"
@@ -22,6 +22,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import Link from "next/link"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
 
 interface CommentSectionProps {
   postSlug: string
@@ -30,11 +34,12 @@ interface CommentSectionProps {
 
 export function CommentSection({ postSlug, onCommentCountChange }: CommentSectionProps) {
   const [comments, setComments] = useState<Comment[]>([])
-  const [commentText, setCommentText] = useState("")
-  const [editingComment, setEditingComment] = useState<{ id: string; text: string } | null>(null)
+  const [newComment, setNewComment] = useState("")
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [isAnonymous, setIsAnonymous] = useState(false)
   const { user } = useAuth()
   const { toast } = useToast()
   const { language } = useLanguage()
@@ -63,7 +68,7 @@ export function CommentSection({ postSlug, onCommentCountChange }: CommentSectio
     fetchAndUpdateComments()
   }, [postSlug])
 
-  const handleSubmitComment = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) {
       toast({
@@ -74,7 +79,7 @@ export function CommentSection({ postSlug, onCommentCountChange }: CommentSectio
       return
     }
 
-    if (!commentText.trim()) {
+    if (!newComment.trim()) {
       toast({
         title: "Empty comment",
         description: "Please enter a comment",
@@ -85,20 +90,20 @@ export function CommentSection({ postSlug, onCommentCountChange }: CommentSectio
 
     setIsSubmitting(true)
     try {
-      if (editingComment) {
-        const updatedComment = await editComment(editingComment.id, commentText)
+      if (editingCommentId) {
+        const updatedComment = await editComment(editingCommentId, newComment)
         const updatedComments = comments.map(comment => 
-          comment._id === editingComment.id ? updatedComment : comment
+          comment._id === editingCommentId ? updatedComment : comment
         )
         setComments(updatedComments)
-        setEditingComment(null)
+        setEditingCommentId(null)
         toast({
           title: "Comment updated",
           description: "Your comment has been updated successfully",
         })
       } else {
-        const newComment = await addComment(postSlug, commentText)
-        const updatedComments = [newComment, ...comments]
+        const newCommentData = await addComment(postSlug, newComment, isAnonymous)
+        const updatedComments = [newCommentData, ...comments]
         setComments(updatedComments)
         onCommentCountChange?.(updatedComments.length)
         toast({
@@ -106,11 +111,12 @@ export function CommentSection({ postSlug, onCommentCountChange }: CommentSectio
           description: "Your comment has been added successfully",
         })
       }
-      setCommentText("")
+      setNewComment("")
+      setIsAnonymous(false)
     } catch (error) {
       toast({
         title: "Error",
-        description: editingComment ? "Failed to update comment" : "Failed to add comment",
+        description: editingCommentId ? "Failed to update comment" : "Failed to add comment",
         variant: "destructive",
       })
     } finally {
@@ -118,12 +124,12 @@ export function CommentSection({ postSlug, onCommentCountChange }: CommentSectio
     }
   }
 
-  const handleEditComment = (comment: Comment) => {
-    setEditingComment({ id: comment._id, text: comment.text })
-    setCommentText(comment.text)
+  const handleEdit = (comment: Comment) => {
+    setEditingCommentId(comment._id)
+    setNewComment(comment.text)
   }
 
-  const handleDeleteComment = async (commentId: string) => {
+  const handleDelete = async (commentId: string) => {
     setIsDeleting(true)
     try {
       await deleteComment(commentId)
@@ -146,122 +152,112 @@ export function CommentSection({ postSlug, onCommentCountChange }: CommentSectio
   }
 
   const cancelEdit = () => {
-    setEditingComment(null)
-    setCommentText("")
+    setEditingCommentId(null)
+    setNewComment("")
   }
 
   return (
     <div className="space-y-6">
+      <h2 className="text-2xl font-bold">{t('comments')}</h2>
+
+      {/* Comment form */}
       {user ? (
-        <form onSubmit={handleSubmitComment} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <Textarea
-            placeholder={t('write_comment')}
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder={t('comment_placeholder')}
             className="min-h-[100px]"
           />
-          <div className="flex gap-2">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {editingComment ? t('update_comment') : t('submit_comment')}
-                </>
-              ) : (
-                editingComment ? t('update_comment') : t('submit_comment')
-              )}
-            </Button>
-            {editingComment && (
-              <Button type="button" variant="outline" onClick={cancelEdit}>
-                {t('cancel')}
-              </Button>
+          
+          {!editingCommentId && (
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="anonymous-comment"
+                checked={isAnonymous}
+                onCheckedChange={(checked) => setIsAnonymous(checked as boolean)}
+              />
+              <Label htmlFor="anonymous-comment" className="text-sm cursor-pointer">
+                {t('post_anonymously')}
+              </Label>
+            </div>
+          )}
+
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {editingCommentId ? t('update_comment') : t('submit_comment')}
+              </>
+            ) : editingCommentId ? (
+              t('update_comment')
+            ) : (
+              t('submit_comment')
             )}
-          </div>
+          </Button>
         </form>
       ) : (
         <div className="bg-muted p-4 rounded-lg text-center">
-          {t('login_to_comment')}{" "}
-          <Button variant="link" className="p-0" asChild>
-            <a href="/login">{t('login')}</a>
+          <p className="text-muted-foreground">{t('login_to_comment')}</p>
+          <Button asChild variant="link" className="mt-2">
+            <Link href="/login">{t('login')}</Link>
           </Button>
         </div>
       )}
 
-      {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-8 space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">{t('loading_comments')}</p>
-        </div>
-      ) : comments.length > 0 ? (
-        <div className="space-y-4">
-          {comments.map((comment) => (
-            <div key={comment._id} className="border rounded-lg p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={comment.author.avatar || ""} alt={comment.author.fullname} />
-                    <AvatarFallback>{comment.author.fullname.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">{comment.author.fullname}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatTimeAgo(comment.createdAt, language)}
-                    </p>
-                  </div>
+      {/* Comments list */}
+      <div className="space-y-4">
+        {comments.map((comment) => (
+          <div key={comment._id} className="flex gap-4">
+            {comment.anonymous ? (
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                <User className="w-6 h-6 text-muted-foreground" />
+              </div>
+            ) : (
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={comment.author.avatar || ""} />
+                <AvatarFallback>{comment.author.fullname.charAt(0)}</AvatarFallback>
+              </Avatar>
+            )}
+            <div className="flex-1 space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">
+                    {comment.anonymous ? comment.anonymousAuthor : comment.author.fullname}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatTimeAgo(comment.createdAt, language)}
+                  </p>
                 </div>
-                {user && user._id === comment.author._id && (
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditComment(comment)}
-                      className="h-8 px-2"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 px-2 text-destructive hover:text-destructive/90"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>{t('delete_comment')}</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            {t('delete_confirm')}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDeleteComment(comment._id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            {isDeleting ? 
-                              <Loader2 className="h-4 w-4 animate-spin" /> : 
-                              t('delete_comment')
-                            }
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
+                {/* Only show edit/delete if not anonymous and is author */}
+                {!comment.anonymous && user && user._id === comment.author._id && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleEdit(comment)}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        {t('update_comment')}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={() => handleDelete(comment._id)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        {t('delete_comment')}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
               </div>
-              <p className="text-muted-foreground">{comment.text}</p>
+              <p className="text-sm">{comment.text}</p>
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-4 text-muted-foreground">
-          {t('no_comments')}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

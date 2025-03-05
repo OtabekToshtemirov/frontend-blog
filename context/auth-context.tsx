@@ -3,12 +3,13 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { login as apiLogin, getMe } from "@/lib/api/auth"
 import type { User } from "@/lib/types"
+import { getStoredToken } from "@/lib/utils"
 
 interface AuthContextType {
   user: User | null
+  isLoading: boolean
   login: (email: string, password: string) => Promise<void>
   logout: () => void
-  isLoading: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -18,22 +19,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const token = localStorage.getItem("token")
+    checkAuth()
 
-    if (token) {
-      fetchUser()
-    } else {
-      setIsLoading(false)
-    }
+    // Setup interval to check token expiration
+    const intervalId = setInterval(checkAuth, 5 * 60 * 1000) // Check every 5 minutes
+    
+    return () => clearInterval(intervalId)
   }, [])
 
-  const fetchUser = async () => {
-    setIsLoading(true)
+  const checkAuth = async () => {
+    const token = getStoredToken() // This will check expiration and remove if expired
+    if (!token) {
+      setUser(null)
+      setIsLoading(false)
+      return
+    }
+
     try {
       const userData = await getMe()
       setUser(userData)
     } catch (error) {
+      console.error("Auth check failed:", error)
       localStorage.removeItem("token")
+      localStorage.removeItem("tokenExpiration")
       setUser(null)
     } finally {
       setIsLoading(false)
@@ -42,16 +50,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const { token, ...userData } = await apiLogin(email, password)
+    const expirationTime = new Date().getTime() + 60 * 24 * 60 * 60 * 1000 // 60 days
     localStorage.setItem("token", token)
+    localStorage.setItem("tokenExpiration", expirationTime.toString())
     setUser(userData)
   }
 
   const logout = () => {
     localStorage.removeItem("token")
+    localStorage.removeItem("tokenExpiration")
     setUser(null)
   }
 
-  return <AuthContext.Provider value={{ user, login, logout, isLoading }}>{children}</AuthContext.Provider>
+  const value = {
+    user,
+    isLoading,
+    login,
+    logout,
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

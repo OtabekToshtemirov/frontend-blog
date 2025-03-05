@@ -7,7 +7,7 @@ import ReactMarkdown from 'react-markdown'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Heart, MessageSquare, Eye, Edit, Trash2 } from "lucide-react"
+import { Heart, MessageSquare, Eye, Edit, Trash2, Loader2 } from "lucide-react"
 import { useAuth } from "@/context/auth-context"
 import { useLanguage } from "@/context/language-context"
 import { useRouter } from "next/navigation"
@@ -26,6 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { useTranslation } from "@/hooks/use-translation"
 
 interface PostDetailProps {
   post: Post
@@ -41,6 +42,7 @@ export function PostDetail({ post, commentCount = 0 }: PostDetailProps) {
   const { language } = useLanguage()
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useTranslation()
 
   const isAuthor = user && user._id === currentPost.author._id
   const hasLiked = user && currentPost.likes.includes(user._id)
@@ -48,8 +50,8 @@ export function PostDetail({ post, commentCount = 0 }: PostDetailProps) {
   const handleLike = async () => {
     if (!user) {
       toast({
-        title: "Authentication required",
-        description: "Please log in to like posts",
+        title: t('auth_like_required'),
+        description: t('auth_like_message'),
         variant: "destructive",
       })
       return
@@ -66,8 +68,8 @@ export function PostDetail({ post, commentCount = 0 }: PostDetailProps) {
       setCurrentPost(prev => ({ ...prev, likes: newLikes }))
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to like the post",
+        title: t('like_failed'),
+        description: t('like_error'),
         variant: "destructive",
       })
     } finally {
@@ -80,14 +82,14 @@ export function PostDetail({ post, commentCount = 0 }: PostDetailProps) {
     try {
       await deletePost(currentPost.slug)
       toast({
-        title: "Success",
-        description: "Post deleted successfully",
+        title: t('success'),
+        description: t('delete_post_success'),
       })
       router.push("/")
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to delete the post",
+        title: t('error'),
+        description: t('delete_post_error'),
         variant: "destructive",
       })
       setIsDeleting(false)
@@ -101,24 +103,36 @@ export function PostDetail({ post, commentCount = 0 }: PostDetailProps) {
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={currentPost.author.avatar || ""} alt={currentPost.author.fullname} />
-            <AvatarFallback>{currentPost.author.fullname.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="font-medium">{currentPost.author.fullname}</p>
-            <p className="text-sm text-muted-foreground">
-              {formatTimeAgo(currentPost.createdAt, language)}
-            </p>
-          </div>
+          {currentPost.anonymous ? (
+            <div>
+              <p className="font-medium">{currentPost.anonymousAuthor}</p>
+              <p className="text-sm text-muted-foreground">
+                {formatTimeAgo(currentPost.createdAt, language)}
+              </p>
+            </div>
+          ) : (
+            <>
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={currentPost.author.avatar || ""} alt={currentPost.author.fullname} />
+                <AvatarFallback>{currentPost.author.fullname.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-medium">{currentPost.author.fullname}</p>
+                <p className="text-sm text-muted-foreground">
+                  {formatTimeAgo(currentPost.createdAt, language)}
+                </p>
+              </div>
+            </>
+          )}
         </div>
 
-        {isAuthor && (
+        {/* Show edit/delete buttons only if not anonymous and is author */}
+        {!currentPost.anonymous && isAuthor && (
           <div className="flex gap-2">
             <Button asChild variant="outline" size="sm">
               <Link href={`/edit/${currentPost.slug}`}>
                 <Edit className="h-4 w-4 mr-1" />
-                Edit
+                {t('edit_button')}
               </Link>
             </Button>
 
@@ -126,20 +140,20 @@ export function PostDetail({ post, commentCount = 0 }: PostDetailProps) {
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" size="sm">
                   <Trash2 className="h-4 w-4 mr-1" />
-                  Delete
+                  {t('delete_button')}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogTitle>{t('delete_post_title')}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete your post.
+                    {t('delete_post_description')}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
                   <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
-                    {isDeleting ? "Deleting..." : "Delete"}
+                    {isDeleting ? t('deleting_post') : t('delete_button')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -175,29 +189,44 @@ export function PostDetail({ post, commentCount = 0 }: PostDetailProps) {
         <ReactMarkdown>{currentPost.description}</ReactMarkdown>
       </div>
 
-      <div className="flex items-center gap-6 pt-4 border-t">
-        <Button 
-          variant={hasLiked ? "default" : "outline"} 
-          size="sm" 
-          onClick={handleLike} 
-          disabled={isLiking || !user}
-          className="transition-all duration-200"
+      <div className="flex items-center gap-4 text-muted-foreground">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-auto p-0 hover:bg-transparent"
+          onClick={handleLike}
+          disabled={isLiking}
         >
-          <Heart className={`h-4 w-4 mr-1 transition-all duration-200 ${hasLiked ? "fill-current" : ""}`} />
-          {formatCount(currentPost.likes.length, 'n_likes', language)}
+          <div className="flex items-center gap-1 group">
+            {isLiking ? (
+              <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+            ) : (
+              <Heart 
+                className={cn(
+                  "h-4 w-4 sm:h-5 sm:w-5 transition-all",
+                  "group-hover:scale-110 group-hover:text-red-500",
+                  hasLiked && "fill-current text-red-500"
+                )} 
+              />
+            )}
+            <span className="text-xs sm:text-sm group-hover:text-red-500 transition-colors">
+              <span className="hidden sm:inline">{formatCount(currentPost.likes.length, 'n_likes', language)}</span>
+              <span className="sm:hidden">{currentPost.likes.length}</span>
+            </span>
+          </div>
         </Button>
-
-        <div className="flex items-center gap-1 text-muted-foreground">
-          <MessageSquare className="h-4 w-4" />
-          <span>
-            {formatCount(commentCount, 'n_comments', language)}
+        <div className="flex items-center gap-1">
+          <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />
+          <span className="text-xs sm:text-sm">
+            <span className="hidden sm:inline">{formatCount(commentCount, 'n_comments', language)}</span>
+            <span className="sm:hidden">{commentCount}</span>
           </span>
         </div>
-
-        <div className="flex items-center gap-1 text-muted-foreground">
-          <Eye className="h-4 w-4" />
-          <span>
-            {formatCount(currentPost.views, 'n_views', language)}
+        <div className="flex items-center gap-1">
+          <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
+          <span className="text-xs sm:text-sm">
+            <span className="hidden sm:inline">{formatCount(currentPost.views, 'n_views', language)}</span>
+            <span className="sm:hidden">{currentPost.views}</span>
           </span>
         </div>
       </div>

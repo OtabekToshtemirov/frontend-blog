@@ -1,22 +1,21 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
+import { useState, useEffect, useMemo } from "react"
 import { Badge } from "@/components/ui/badge"
-import { getLastTags } from "@/lib/api/posts"
-import { Skeleton } from "@/components/ui/skeleton"
+import { getPopularTags } from "@/lib/api/posts"
 import { useTranslation } from "@/hooks/use-translation"
+import Link from "next/link"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export function TagCloud() {
-  const [tags, setTags] = useState<string[]>([])
+  const [tags, setTags] = useState<{ name: string; count: number }[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const { t } = useTranslation()
 
   useEffect(() => {
     const fetchTags = async () => {
-      setIsLoading(true)
       try {
-        const data = await getLastTags()
+        const data = await getPopularTags()
         setTags(data)
       } catch (error) {
         console.error("Failed to fetch tags:", error)
@@ -28,32 +27,54 @@ export function TagCloud() {
     fetchTags()
   }, [])
 
+  // Sort tags by count and filter out empty tags
+  const sortedTags = useMemo(() => {
+    return tags
+      .filter(tag => tag.name.trim().length > 0)
+      .sort((a, b) => b.count - a.count)
+  }, [tags])
+
   if (isLoading) {
     return (
-      <div className="flex flex-wrap gap-1 sm:gap-2">
-        {[...Array(6)].map((_, i) => (
-          <Skeleton key={i} className="h-5 sm:h-6 w-14 sm:w-16" />
-        ))}
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold">{t('popular_tags')}</h2>
+        <div className="flex flex-wrap gap-2">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <Skeleton key={i} className="h-6 w-16" />
+          ))}
+        </div>
       </div>
     )
   }
 
-  if (tags.length === 0) {
-    return <div className="text-center py-2 text-sm text-muted-foreground">{t('no_tags')}</div>
+  if (sortedTags.length === 0) {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold">{t('popular_tags')}</h2>
+        <p className="text-muted-foreground">{t('no_tags')}</p>
+      </div>
+    )
   }
 
   return (
-    <div className="flex flex-wrap gap-1 sm:gap-2">
-      {tags.map((tag) => (
-        <Link href={`/posts/tag/${encodeURIComponent(tag)}`} key={tag}>
-          <Badge 
-            variant="secondary" 
-            className="text-[10px] leading-relaxed sm:text-xs hover:bg-secondary/80 whitespace-nowrap transition-colors px-2 py-0 sm:px-2.5 sm:py-0.5"
+    <div className="space-y-4">
+      <h2 className="text-xl font-bold">{t('popular_tags')}</h2>
+      <div className="flex flex-wrap gap-2">
+        {sortedTags.map((tag) => (
+          <Link 
+            key={tag.name} 
+            href={`/posts/tag/${encodeURIComponent(tag.name)}`}
+            className="no-underline"
           >
-            #{tag}
-          </Badge>
-        </Link>
-      ))}
+            <Badge 
+              variant="secondary" 
+              className="hover:bg-secondary/80"
+            >
+              #{tag.name}
+            </Badge>
+          </Link>
+        ))}
+      </div>
     </div>
   )
 }

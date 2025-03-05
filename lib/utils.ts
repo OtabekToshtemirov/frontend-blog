@@ -31,3 +31,41 @@ export function formatCount(n: number, key: 'n_likes' | 'n_comments' | 'n_views'
   const formatter = translations[language][key] as (n: number) => string
   return formatter(n)
 }
+
+// Authentication token utilities
+export function getStoredToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  
+  const token = localStorage.getItem('token');
+  const expiration = localStorage.getItem('tokenExpiration');
+  
+  if (!token || !expiration) return null;
+
+  const expirationTime = parseInt(expiration);
+  const currentTime = new Date().getTime();
+
+  if (currentTime > expirationTime) {
+    // Token has expired
+    localStorage.removeItem('token');
+    localStorage.removeItem('tokenExpiration');
+    return null;
+  }
+
+  return token;
+}
+
+export function validateAndCleanTags(tags: string | string[]): string[] {
+  if (typeof tags === 'string') {
+    // Split by comma and clean each tag
+    return tags
+      .split(',')
+      .map(tag => tag.trim().replace(/^#/, '')) // Remove # from start if exists
+      .filter(tag => tag.length > 0);
+  } else if (Array.isArray(tags)) {
+    // Clean each tag in array
+    return tags
+      .map(tag => tag.toString().trim().replace(/^#/, ''))
+      .filter(tag => tag.length > 0);
+  }
+  return [];
+}

@@ -60,6 +60,61 @@ type TranslationKeys =
   | "sign_in"
   | "welcome_back"
   | "create_account"
+  | "page_not_found"
+  | "back_to_home"
+  | "new_password"
+  | "password_placeholder"
+  | "saving"
+  | "save_changes"
+  | "delete_account"
+  | "delete_warning"
+  | "deleting"
+  | "no_changes"
+  | "profile_updated"
+  | "update_failed"
+  | "account_deleted"
+  | "delete_failed"
+  | "update_profile"
+  | "profile_info"
+  | "post_anonymously"
+  | "deleted_user"
+  | "anonymous_user"
+  | "title_placeholder"
+  | "content_placeholder"
+  | "tags_placeholder"
+  | "edit_tab"
+  | "preview_tab"
+  | "uploading"
+  | "upload_button"
+  | "saving_post"
+  | "creating_post"
+  | "updating_post"
+  | "update_button"
+  | "create_button"
+  | "auth_required"
+  | "login_to_create_post"
+  | "image_uploaded"
+  | "image_upload_success"
+  | "upload_failed"
+  | "image_upload_error"
+  | "missing_fields"
+  | "fill_required_fields"
+  | "success"
+  | "post_updated"
+  | "post_created"
+  | "general_error"
+  | "error"
+  | "delete_post_title"
+  | "delete_post_description"
+  | "auth_like_required"
+  | "auth_like_message"
+  | "like_failed"
+  | "like_error"
+  | "delete_post_error"
+  | "delete_post_success"
+  | "edit_button"
+  | "delete_button"
+  | "deleting_post"
 
 type Translations = {
   [K in Language]: {
@@ -88,7 +143,7 @@ export const translations: Translations = {
     update_comment: "Yangilash",
     delete_comment: "O'chirish",
     login_to_comment: "Izoh qoldirish uchun tizimga kiring",
-    comment_placeholder: "Fikringizni yozing...",
+    comment_placeholder: "Komment qoldiring...",
     create_post: "Maqola yaratish",
     edit_post: "Maqolani tahrirlash",
     delete_post: "Maqolani o'chirish",
@@ -128,6 +183,61 @@ export const translations: Translations = {
     sign_in: "Kirish",
     welcome_back: "Qaytganingiz bilan!",
     create_account: "Yangi hisob yarating",
+    page_not_found: "Sahifa topilmadi",
+    back_to_home: "Bosh sahifaga qaytish",
+    new_password: "Yangi parol",
+    password_placeholder: "Yangi parol kiriting",
+    saving: "Saqlanmoqda...",
+    save_changes: "O'zgarishlarni saqlash",
+    delete_account: "Akkauntni o'chirish",
+    delete_warning: "Bu amalni qaytarib bo'lmaydi. Akkauntingiz va barcha ma'lumotlaringiz butunlay o'chiriladi.",
+    deleting: "O'chirilmoqda...",
+    no_changes: "O'zgarishlar topilmadi",
+    profile_updated: "Profil yangilandi",
+    update_failed: "Profilni yangilashda xatolik yuz berdi",
+    account_deleted: "Akkaunt o'chirildi",
+    delete_failed: "Akkauntni o'chirishda xatolik yuz berdi",
+    update_profile: "Profil ma'lumotlarini yangilash",
+    profile_info: "Profil ma'lumotlari",
+    post_anonymously: "Anonim ravishda nashr qilish",
+    deleted_user: "O'chirilgan foydalanuvchi",
+    anonymous_user: "Anonim foydalanuvchi",
+    title_placeholder: "Sarlavhani kiriting",
+    content_placeholder: "Post matnini kiriting... (Markdown formati qo'llaniladi)",
+    tags_placeholder: "Teglarni vergul bilan ajrating. Masalan: #texnologiya, #dasturlash, #veb",
+    edit_tab: "Tahrirlash",
+    preview_tab: "Ko'rib chiqish",
+    uploading: "Yuklanmoqda...",
+    upload_button: "Rasm yuklash",
+    saving_post: "Saqlanmoqda...",
+    creating_post: "Yaratilmoqda...",
+    updating_post: "Yangilanmoqda...",
+    update_button: "Yangilash",
+    create_button: "Yaratish",
+    auth_required: "Avtorizatsiya talab qilinadi",
+    login_to_create_post: "Maqola yaratish uchun tizimga kiring",
+    image_uploaded: "Rasm yuklandi",
+    image_upload_success: "Rasm muvaffaqiyatli yuklandi",
+    upload_failed: "Yuklash xatosi",
+    image_upload_error: "Rasmni yuklashda xatolik yuz berdi",
+    missing_fields: "Ma'lumotlar to'liq emas",
+    fill_required_fields: "Barcha majburiy maydonlarni to'ldiring",
+    success: "Muvaffaqiyatli",
+    post_updated: "Maqola muvaffaqiyatli yangilandi",
+    post_created: "Maqola muvaffaqiyatli yaratildi",
+    general_error: "Xatolik yuz berdi",
+    error: "Xatolik",
+    delete_post_title: "Ishonchingiz komilmi?",
+    delete_post_description: "Bu amalni qaytarib bo'lmaydi. Post butunlay o'chiriladi.",
+    auth_like_required: "Avtorizatsiya zarur",
+    auth_like_message: "Postni yoqtirish uchun tizimga kiring",
+    like_failed: "Xatolik",
+    like_error: "Postni yoqtirishda xatolik yuz berdi",
+    delete_post_error: "Postni o'chirishda xatolik yuz berdi",
+    delete_post_success: "Post muvaffaqiyatli o'chirildi",
+    edit_button: "Tahrirlash",
+    delete_button: "O'chirish",
+    deleting_post: "O'chirilmoqda...",
   },
   en: {
     latest_posts: "Latest Posts",
@@ -189,6 +299,61 @@ export const translations: Translations = {
     sign_in: "Sign in",
     welcome_back: "Welcome back!",
     create_account: "Create a new account",
+    page_not_found: "Page not found",
+    back_to_home: "Back to home",
+    new_password: "New Password",
+    password_placeholder: "Enter new password",
+    saving: "Saving...",
+    save_changes: "Save Changes",
+    delete_account: "Delete Account",
+    delete_warning: "This action cannot be undone. Your account and all your data will be permanently deleted.",
+    deleting: "Deleting...",
+    no_changes: "No changes found",
+    profile_updated: "Profile updated",
+    update_failed: "Failed to update profile",
+    account_deleted: "Account deleted",
+    delete_failed: "Failed to delete account",
+    update_profile: "Update your profile information",
+    profile_info: "Profile Information",
+    post_anonymously: "Post anonymously",
+    deleted_user: "Deleted user",
+    anonymous_user: "Anonymous user",
+    title_placeholder: "Enter post title",
+    content_placeholder: "Write your post content here... (Markdown supported)",
+    tags_placeholder: "Add tags separated by commas. Example: #technology, #programming, #web",
+    edit_tab: "Edit",
+    preview_tab: "Preview",
+    uploading: "Uploading...",
+    upload_button: "Upload Image",
+    saving_post: "Saving...",
+    creating_post: "Creating...",
+    updating_post: "Updating...",
+    update_button: "Update",
+    create_button: "Create",
+    auth_required: "Authentication required",
+    login_to_create_post: "Please log in to create a post",
+    image_uploaded: "Image uploaded",
+    image_upload_success: "Image has been uploaded successfully",
+    upload_failed: "Upload failed",
+    image_upload_error: "Failed to upload image",
+    missing_fields: "Missing fields",
+    fill_required_fields: "Please fill in all required fields",
+    success: "Success",
+    post_updated: "Post has been updated successfully",
+    post_created: "Post has been created successfully",
+    general_error: "An error occurred",
+    error: "Error",
+    delete_post_title: "Are you sure?",
+    delete_post_description: "This action cannot be undone. This will permanently delete your post.",
+    auth_like_required: "Authentication required",
+    auth_like_message: "Please log in to like posts",
+    like_failed: "Error",
+    like_error: "Failed to like the post",
+    delete_post_error: "Failed to delete the post",
+    delete_post_success: "Post deleted successfully",
+    edit_button: "Edit",
+    delete_button: "Delete",
+    deleting_post: "Deleting...",
   },
   ru: {
     latest_posts: "Последние статьи",
@@ -250,5 +415,60 @@ export const translations: Translations = {
     sign_in: "Войти",
     welcome_back: "С возвращением!",
     create_account: "Создать новый аккаунт",
+    page_not_found: "Страница не найдена",
+    back_to_home: "Вернуться на главную",
+    new_password: "Новый пароль",
+    password_placeholder: "Введите новый пароль",
+    saving: "Сохранение...",
+    save_changes: "Сохранить изменения",
+    delete_account: "Удалить аккаунт",
+    delete_warning: "Это действие нельзя отменить. Ваш аккаунт и все данные будут удалены безвозвратно.",
+    deleting: "Удаление...",
+    no_changes: "Изменения не найдены",
+    profile_updated: "Профиль обновлен",
+    update_failed: "Не удалось обновить профиль",
+    account_deleted: "Аккаунт удален",
+    delete_failed: "Не удалось удалить аккаунт",
+    update_profile: "Обновить информацию профиля",
+    profile_info: "Информация профиля",
+    post_anonymously: "Опубликовать анонимно",
+    deleted_user: "Удаленный пользователь",
+    anonymous_user: "Анонимный пользователь",
+    title_placeholder: "Введите заголовок поста",
+    content_placeholder: "Напишите содержание поста... (Поддерживается Markdown)",
+    tags_placeholder: "Добавьте теги через запятую. Пример: #технологии, #программирование, #веб",
+    edit_tab: "Редактировать",
+    preview_tab: "Предпросмотр",
+    uploading: "Загрузка...",
+    upload_button: "Загрузить изображение",
+    saving_post: "Сохранение...",
+    creating_post: "Создание...",
+    updating_post: "Обновление...",
+    update_button: "Обновить",
+    create_button: "Создать",
+    auth_required: "Требуется авторизация",
+    login_to_create_post: "Войдите, чтобы создать статью",
+    image_uploaded: "Изображение загружено",
+    image_upload_success: "Изображение успешно загружено",
+    upload_failed: "Ошибка загрузки",
+    image_upload_error: "Не удалось загрузить изображение",
+    missing_fields: "Не все поля заполнены",
+    fill_required_fields: "Пожалуйста, заполните все обязательные поля",
+    success: "Успешно",
+    post_updated: "Статья успешно обновлена",
+    post_created: "Статья успешно создана",
+    general_error: "Произошла ошибка",
+    error: "Ошибка",
+    delete_post_title: "Вы уверены?",
+    delete_post_description: "Это действие нельзя отменить. Ваш пост будет удален навсегда.",
+    auth_like_required: "Требуется авторизация",
+    auth_like_message: "Войдите, чтобы ставить лайки",
+    like_failed: "Ошибка",
+    like_error: "Не удалось поставить лайк",
+    delete_post_error: "Не удалось удалить пост",
+    delete_post_success: "Пост успешно удален",
+    edit_button: "Редактировать",
+    delete_button: "Удалить",
+    deleting_post: "Удаление...",
   }
 }

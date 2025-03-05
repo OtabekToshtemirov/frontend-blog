@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
-import { getAllComments } from "@/lib/api/comments"
+import { getLatestComments } from "@/lib/api/comments"
 import type { Comment } from "@/lib/types"
 import { MessageSquare, ArrowRight } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation"
@@ -20,12 +20,8 @@ export function LatestComments() {
   useEffect(() => {
     const fetchComments = async () => {
       try {
-        const data = await getAllComments() // Use getAllComments instead since latest-comments endpoint doesn't exist yet
-        // Sort by date and take latest 5
-        const sortedComments = data
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-          .slice(0, 5)
-        setComments(sortedComments)
+        const data = await getLatestComments(5)
+        setComments(data)
       } catch (error) {
         console.error("Failed to fetch latest comments:", error)
       } finally {
@@ -66,7 +62,11 @@ export function LatestComments() {
       {comments.map((comment) => (
         <div key={comment._id} className="group">
           <Link 
-            href={`/posts/${typeof comment.post === 'string' ? comment.post : comment.post.slug}`} 
+            href={`/posts/${
+              typeof comment.post === 'string' 
+                ? comment.post 
+                : comment.post?.slug || 'post-not-found'
+            }`} 
             className="block p-2 sm:p-3 rounded-lg hover:bg-secondary/20 transition-colors"
           >
             <div className="flex items-start space-x-2 sm:space-x-3">
@@ -86,7 +86,9 @@ export function LatestComments() {
                   <span className="shrink-0">{t('view_post')}</span>
                   <ArrowRight className="h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0" />
                   <span className="font-medium truncate">
-                    {typeof comment.post === 'object' ? comment.post.title : comment.postTitle}
+                    {typeof comment.post === 'object' && comment.post 
+                      ? comment.post.title 
+                      : comment.postTitle || t('no_posts')}
                   </span>
                 </div>
               </div>

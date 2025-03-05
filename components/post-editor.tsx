@@ -16,6 +16,9 @@ import type { Post } from "@/lib/types"
 import { Card, CardContent } from "@/components/ui/card"
 import { X, Upload, Loader2 } from "lucide-react"
 import Image from "next/image"
+import { Checkbox } from "@/components/ui/checkbox"
+import { useTranslation } from "@/hooks/use-translation"
+import { validateAndCleanTags } from "@/lib/utils"
 
 interface PostEditorProps {
   post?: Post
@@ -33,17 +36,19 @@ export function PostEditor({ post }: PostEditorProps) {
   const { toast } = useToast()
   const isEditing = !!post
   const [activeTab, setActiveTab] = useState("edit")
+  const [isAnonymous, setIsAnonymous] = useState(post?.anonymous || false)
+  const { t } = useTranslation()
 
   useEffect(() => {
     if (!user) {
       toast({
-        title: "Authentication required",
-        description: "Please log in to create or edit posts",
+        title: t('auth_required'),
+        description: t('login_to_create_post'),
         variant: "destructive",
       })
       router.push("/login")
     }
-  }, [user, router, toast])
+  }, [user, router, toast, t])
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return
@@ -59,13 +64,13 @@ export function PostEditor({ post }: PostEditorProps) {
       setImages([...images, imageUrl])
 
       toast({
-        title: "Image uploaded",
-        description: "Image has been uploaded successfully",
+        title: t('image_uploaded'),
+        description: t('image_upload_success'),
       })
     } catch (error) {
       toast({
-        title: "Upload failed",
-        description: "Failed to upload image",
+        title: t('upload_failed'),
+        description: t('image_upload_error'),
         variant: "destructive",
       })
     } finally {
@@ -82,8 +87,8 @@ export function PostEditor({ post }: PostEditorProps) {
 
     if (!title.trim() || !description.trim()) {
       toast({
-        title: "Missing fields",
-        description: "Please fill in all required fields",
+        title: t('missing_fields'),
+        description: t('fill_required_fields'),
         variant: "destructive",
       })
       return
@@ -92,38 +97,45 @@ export function PostEditor({ post }: PostEditorProps) {
     setIsSubmitting(true)
 
     try {
-      // Clean and format tags, removing #
-      const tagArray = tags
-        .split(",")
-        .map((tag) => tag.trim().replace(/^#/, ''))
-        .filter((tag) => tag.length > 0)
-
+      const cleanedTags = validateAndCleanTags(tags);
+      
       const postData = {
-        title,
-        description,
-        tags: tagArray,
+        title: title.trim(),
+        description: description.trim(),
+        tags: cleanedTags,
         photo: images,
+        anonymous: isAnonymous,
       }
 
-      if (isEditing) {
+      if (isEditing && post) {
         const updatedPost = await updatePost(post.slug, postData)
         toast({
-          title: "Post updated",
-          description: "Your post has been updated successfully",
+          title: t('success'),
+          description: t('post_updated'),
         })
         router.push(`/posts/${updatedPost.slug}`)
       } else {
         const newPost = await createPost(postData)
         toast({
-          title: "Post created",
-          description: "Your post has been created successfully",
+          title: t('success'),
+          description: t('post_created'),
         })
         router.push(`/posts/${newPost.slug}`)
       }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "An error occurred"
+    } catch (error: any) {
+      let errorMessage = t('general_error');
+      
+      // Handle validation errors
+      if (error.response?.data?.errors) {
+        errorMessage = error.response.data.errors
+          .map((err: any) => t(err.message))
+          .join(', ');
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: "Error",
+        title: t('error'),
         description: errorMessage,
         variant: "destructive",
       })
@@ -135,29 +147,29 @@ export function PostEditor({ post }: PostEditorProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="title">Title</Label>
+        <Label htmlFor="title">{t('post_title')}</Label>
         <Input
           id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Enter post title"
+          placeholder={t('title_placeholder')}
           required
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Content</Label>
+        <Label htmlFor="description">{t('post_content')}</Label>
         <Tabs defaultValue="edit" className="w-full" onValueChange={setActiveTab}>
           <TabsList className="mb-2">
-            <TabsTrigger value="edit">Edit</TabsTrigger>
-            <TabsTrigger value="preview">Preview</TabsTrigger>
+            <TabsTrigger value="edit">{t('edit_tab')}</TabsTrigger>
+            <TabsTrigger value="preview">{t('preview_tab')}</TabsTrigger>
           </TabsList>
           <TabsContent value="edit" className="mt-0">
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Write your post content here... (Markdown supported)"
+              placeholder={t('content_placeholder')}
               className="min-h-[300px]"
               required
             />
@@ -171,21 +183,20 @@ export function PostEditor({ post }: PostEditorProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="tags">Tags (comma separated)</Label>
+        <Label htmlFor="tags">{t('post_tags')}</Label>
         <Input
           id="tags"
           value={tags}
           onChange={(e) => {
             const value = e.target.value;
-            // Allow typing # but don't duplicate it
             setTags(value.replace(/,\s*#/g, ',').replace(/##/g, '#'));
           }}
-          placeholder="#technology, #programming, #web"
+          placeholder={t('tags_placeholder')}
         />
       </div>
 
       <div className="space-y-2">
-        <Label>Images</Label>
+        <Label>{t('upload_image')}</Label>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
           {images.map((image, index) => (
             <Card key={index} className="relative overflow-hidden group">
@@ -202,7 +213,7 @@ export function PostEditor({ post }: PostEditorProps) {
                 <div className="relative h-32 w-full">
                   <Image
                     src={`${process.env.NEXT_PUBLIC_API_URL}${image}`}
-                    alt={`Image ${index + 1}`}
+                    alt={`${t('upload_image')} ${index + 1}`}
                     fill
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 25vw, 20vw"
@@ -217,12 +228,12 @@ export function PostEditor({ post }: PostEditorProps) {
                 {isUploading ? (
                   <>
                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-2" />
-                    <span className="text-sm text-muted-foreground">Uploading...</span>
+                    <span className="text-sm text-muted-foreground">{t('uploading')}</span>
                   </>
                 ) : (
                   <>
                     <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                    <span className="text-sm text-muted-foreground">Upload Image</span>
+                    <span className="text-sm text-muted-foreground">{t('upload_button')}</span>
                   </>
                 )}
                 <input
@@ -238,14 +249,25 @@ export function PostEditor({ post }: PostEditorProps) {
         </div>
       </div>
 
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="anonymous"
+          checked={isAnonymous}
+          onCheckedChange={(checked) => setIsAnonymous(checked as boolean)}
+        />
+        <Label htmlFor="anonymous" className="text-sm cursor-pointer">
+          {t('post_anonymously')}
+        </Label>
+      </div>
+
       <Button type="submit" className="w-full" disabled={isSubmitting || isUploading}>
         {isSubmitting ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            {isEditing ? "Updating..." : "Creating..."}
+            {isEditing ? t('updating_post') : t('creating_post')}
           </>
         ) : (
-          <>{isEditing ? "Update Post" : "Create Post"}</>
+          <>{isEditing ? t('update_button') : t('create_button')}</>
         )}
       </Button>
     </form>
