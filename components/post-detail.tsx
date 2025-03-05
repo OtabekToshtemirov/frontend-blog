@@ -7,7 +7,7 @@ import ReactMarkdown from 'react-markdown'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Heart, MessageSquare, Eye, Edit, Trash2, Loader2 } from "lucide-react"
+import { Heart, MessageSquare, Eye, Edit, Trash2, Loader2, User } from "lucide-react"
 import { useAuth } from "@/context/auth-context"
 import { useLanguage } from "@/context/language-context"
 import { useRouter } from "next/navigation"
@@ -44,7 +44,7 @@ export function PostDetail({ post, commentCount = 0 }: PostDetailProps) {
   const { toast } = useToast()
   const { t } = useTranslation()
 
-  const isAuthor = user && user._id === currentPost.author._id
+  const isAuthor = user && user._id === currentPost.author._id && !currentPost.anonymous
   const hasLiked = user && currentPost.likes.includes(user._id)
 
   const handleLike = async () => {
@@ -98,68 +98,73 @@ export function PostDetail({ post, commentCount = 0 }: PostDetailProps) {
   }
 
   return (
-    <article className="space-y-6">
-      <h1 className="text-4xl font-bold">{currentPost.title}</h1>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {currentPost.anonymous ? (
-            <div>
-              <p className="font-medium">{currentPost.anonymousAuthor}</p>
-              <p className="text-sm text-muted-foreground">
-                {formatTimeAgo(currentPost.createdAt, language)}
-              </p>
-            </div>
-          ) : (
-            <>
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={currentPost.author.avatar || ""} alt={currentPost.author.fullname} />
-                <AvatarFallback>{currentPost.author.fullname.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="font-medium">{currentPost.author.fullname}</p>
-                <p className="text-sm text-muted-foreground">
-                  {formatTimeAgo(currentPost.createdAt, language)}
-                </p>
+    <article className="space-y-8">
+      <div className="space-y-4">
+        <h1 className="text-3xl font-bold">{currentPost.title}</h1>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {currentPost.anonymous ? (
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                  <User className="w-6 h-6 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="font-medium">{currentPost.anonymousAuthor || t('anonymous_user')}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatTimeAgo(currentPost.createdAt, language)}
+                  </p>
+                </div>
               </div>
-            </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={currentPost.author.avatar || ""} />
+                  <AvatarFallback>{currentPost.author.fullname.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">{currentPost.author.fullname}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatTimeAgo(currentPost.createdAt, language)}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {isAuthor && (
+            <div className="flex gap-2">
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/edit/${currentPost.slug}`}>
+                  <Edit className="h-4 w-4 mr-1" />
+                  {t('edit_button')}
+                </Link>
+              </Button>
+
+              <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm">
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    {t('delete_button')}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t('delete_post_title')}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {t('delete_post_description')}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
+                      {isDeleting ? t('deleting_post') : t('delete_button')}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           )}
         </div>
-
-        {/* Show edit/delete buttons only if not anonymous and is author */}
-        {!currentPost.anonymous && isAuthor && (
-          <div className="flex gap-2">
-            <Button asChild variant="outline" size="sm">
-              <Link href={`/edit/${currentPost.slug}`}>
-                <Edit className="h-4 w-4 mr-1" />
-                {t('edit_button')}
-              </Link>
-            </Button>
-
-            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="sm">
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  {t('delete_button')}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>{t('delete_post_title')}</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {t('delete_post_description')}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
-                    {isDeleting ? t('deleting_post') : t('delete_button')}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        )}
       </div>
 
       {currentPost.photo && currentPost.photo.length > 0 && (

@@ -14,13 +14,21 @@ export async function getAllPosts(page: number = 1, limit: number = 10, sortBy: 
   return data;
 }
 
-// Fix getPosts function to handle response structure correctly
-export async function getPosts(sortBy: SortBy = 'latest', page: number = 1, limit: number = 10): Promise<Post[]> {
-  const { data } = await api.get(`/posts?page=${page}&limit=${limit}&sortBy=${sortBy}`);
-  return data; // The backend returns the posts array directly
+export async function getPosts(sortBy: SortBy = 'latest'): Promise<Post[]> {
+  const { data } = await api.get(`/posts?sortBy=${sortBy}`);
+  return data;
 }
 
-// Add the getPostsByTag function that's also used in post-list.tsx
+export async function getLatestPosts(limit?: number): Promise<Post[]> {
+  const { data } = await api.get(`/posts/latest${limit ? `?limit=${limit}` : ''}`);
+  return data;
+}
+
+export async function getMostViewedPosts(limit?: number): Promise<Post[]> {
+  const { data } = await api.get(`/posts/popular${limit ? `?limit=${limit}` : ''}`);
+  return data;
+}
+
 export async function getPostsByTag(tag: string): Promise<Post[]> {
   const cleanTag = tag.replace(/^#/, ''); // Remove # if exists
   const { data } = await api.get(`/posts/tag/${encodeURIComponent(cleanTag)}`);
@@ -36,12 +44,18 @@ export async function getPostBySlug(slug: string): Promise<Post> {
 export const getPost = getPostBySlug;
 
 export async function createPost(postData: PostCreateInput & { anonymous?: boolean }): Promise<Post> {
-  const { data } = await api.post('/posts', postData);
+  const { data } = await api.post('/posts', {
+    ...postData,
+    anonymous: postData.anonymous ?? false,
+  });
   return data;
 }
 
 export async function updatePost(slug: string, postData: PostUpdateInput & { anonymous?: boolean }): Promise<Post> {
-  const { data } = await api.patch(`/posts/${slug}`, postData);
+  const { data } = await api.patch(`/posts/${slug}`, {
+    ...postData,
+    anonymous: postData.anonymous ?? false,
+  });
   return data;
 }
 
@@ -54,7 +68,7 @@ export async function likePost(slug: string): Promise<Post> {
   return data;
 }
 
-export async function getPopularTags(): Promise<{ name: string; count: number }[]> {
+export async function getPopularTags(): Promise<TagCount[]> {
   const { data } = await api.get('/tags');
   return data;
 }

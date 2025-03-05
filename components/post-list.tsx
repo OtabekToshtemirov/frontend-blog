@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { formatDistanceToNow } from "date-fns"
-import { Heart, MessageSquare, Eye, Loader2 } from "lucide-react"
+import { Heart, MessageSquare, Eye, Loader2, User } from "lucide-react"
 import { getPosts, getPostsByTag, likePost, type SortBy } from "@/lib/api/posts"
 import { getComments } from "@/lib/api/comments"
 import { useToast } from "@/components/ui/use-toast"
@@ -154,11 +154,16 @@ export function PostList({ tag }: PostListProps) {
 
               <div className="flex items-center gap-2 mb-3 sm:mb-4">
                 {post.anonymous ? (
-                  <div>
-                    <p className="text-xs sm:text-sm font-medium">{post.anonymousAuthor}</p>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">
-                      {formatTimeAgo(post.createdAt, language)}
-                    </p>
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                      <User className="w-6 h-6 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{post.anonymousAuthor || 'Anonymous'}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {formatTimeAgo(post.createdAt, language)}
+                      </p>
+                    </div>
                   </div>
                 ) : (
                   <>
