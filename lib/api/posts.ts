@@ -1,61 +1,76 @@
 import { api } from './axios';
-import type { Post, PostCreateInput, PostUpdateInput } from '../types';
+import type { Post } from '../types';
 
-export type SortBy = 'latest' | 'popular';
-
-// Define the TagCount interface
-export interface TagCount {
-  name: string;
-  count: number;
+export async function getPosts(sortBy?: string): Promise<Post[]> {
+  try {
+    // Map the sortBy values to what backend expects
+    let sortParam = '';
+    if (sortBy === 'popular') {
+      sortParam = 'views';
+    }
+    
+    const { data } = await api.get(`/posts${sortParam ? `?sortBy=${sortParam}` : ''}`);
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch posts:', error);
+    return [];
+  }
 }
 
-export async function getAllPosts(page: number = 1, limit: number = 10, sortBy: 'latest' | 'popular' = 'latest'): Promise<{ posts: Post[]; total: number }> {
-  const { data } = await api.get(`/posts?page=${page}&limit=${limit}&sortBy=${sortBy}`);
+export async function getPost(slug: string): Promise<Post | null> {
+  try {
+    const { data } = await api.get(`/posts/${slug}`);
+    return data;
+  } catch (error) {
+    console.error(`Failed to fetch post ${slug}:`, error);
+    return null;
+  }
+}
+
+export async function getLatestPosts(limit: number = 5): Promise<Post[]> {
+  try {
+    const { data } = await api.get(`/posts/latest?limit=${limit}`);
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch latest posts:', error);
+    return [];
+  }
+}
+
+export async function getMostViewedPosts(limit: number = 5): Promise<Post[]> {
+  try {
+    const { data } = await api.get(`/posts/popular?limit=${limit}`);
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch popular posts:', error);
+    return [];
+  }
+}
+
+export async function createPost(postData: {
+  title: string;
+  description: string;
+  tags?: string[];
+  photo?: string[];
+  anonymous?: boolean;
+  isPublished?: boolean;
+}): Promise<Post> {
+  const { data } = await api.post('/posts', postData);
   return data;
 }
 
-export async function getPosts(sortBy: SortBy = 'latest'): Promise<Post[]> {
-  const { data } = await api.get(`/posts?sortBy=${sortBy}`);
-  return data;
-}
-
-export async function getLatestPosts(limit?: number): Promise<Post[]> {
-  const { data } = await api.get(`/posts/latest${limit ? `?limit=${limit}` : ''}`);
-  return data;
-}
-
-export async function getMostViewedPosts(limit?: number): Promise<Post[]> {
-  const { data } = await api.get(`/posts/popular${limit ? `?limit=${limit}` : ''}`);
-  return data;
-}
-
-export async function getPostsByTag(tag: string): Promise<Post[]> {
-  const cleanTag = tag.replace(/^#/, ''); // Remove # if exists
-  const { data } = await api.get(`/posts/tag/${encodeURIComponent(cleanTag)}`);
-  return data;
-}
-
-export async function getPostBySlug(slug: string): Promise<Post> {
-  const { data } = await api.get(`/posts/${slug}`);
-  return data;
-}
-
-// Add alias for getPostBySlug as getPost
-export const getPost = getPostBySlug;
-
-export async function createPost(postData: PostCreateInput & { anonymous?: boolean }): Promise<Post> {
-  const { data } = await api.post('/posts', {
-    ...postData,
-    anonymous: postData.anonymous ?? false,
-  });
-  return data;
-}
-
-export async function updatePost(slug: string, postData: PostUpdateInput & { anonymous?: boolean }): Promise<Post> {
-  const { data } = await api.patch(`/posts/${slug}`, {
-    ...postData,
-    anonymous: postData.anonymous ?? false,
-  });
+export async function updatePost(
+  slug: string,
+  postData: {
+    title?: string;
+    description?: string;
+    tags?: string[];
+    photo?: string[];
+    anonymous?: boolean;
+    isPublished?: boolean;
+  }
+): Promise<Post> {
+  const { data } = await api.patch(`/posts/${slug}`, postData);
   return data;
 }
 
@@ -68,14 +83,23 @@ export async function likePost(slug: string): Promise<Post> {
   return data;
 }
 
-export async function getPopularTags(): Promise<TagCount[]> {
-  const { data } = await api.get('/tags');
-  return data;
+export async function getPostsByTag(tag: string): Promise<Post[]> {
+  try {
+    const { data } = await api.get(`/posts/tag/${tag}`);
+    return data;
+  } catch (error) {
+    console.error(`Failed to fetch posts for tag ${tag}:`, error);
+    return [];
+  }
 }
 
-// Add the getLastTags function that's being used in tag-cloud.tsx
-export async function getLastTags(): Promise<string[]> {
-  const tags = await getPopularTags();
-  return tags.map(tag => tag.name);
+export async function getLastTags(): Promise<{name: string, count: number}[]> {
+  try {
+    const { data } = await api.get('/tags');
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch tags:', error);
+    return [];
+  }
 }
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { Badge } from "@/components/ui/badge"
-import { getPopularTags } from "@/lib/api/posts"
+import { getLastTags } from "@/lib/api/posts"
 import { useTranslation } from "@/hooks/use-translation"
 import Link from "next/link"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -15,7 +15,7 @@ export function TagCloud() {
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const data = await getPopularTags()
+        const data = await getLastTags()
         setTags(data)
       } catch (error) {
         console.error("Failed to fetch tags:", error)

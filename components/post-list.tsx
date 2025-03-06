@@ -8,14 +8,14 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Heart, MessageSquare, Eye, Loader2, User } from "lucide-react"
-import { getPosts, likePost, type SortBy } from "@/lib/api/posts"
+import { Heart, MessageSquare, Eye, Loader2, User, RefreshCcw } from "lucide-react"
+import { getPosts, likePost } from "@/lib/api/posts"
 import { getComments } from "@/lib/api/comments"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/context/auth-context"
 import { useLanguage } from "@/context/language-context"
 import { formatTimeAgo, formatCount } from "@/lib/utils"
-import type { Post } from "@/lib/types"
+import type { Post, SortBy } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/hooks/use-translation"
 
@@ -28,6 +28,8 @@ export function PostList({ posts: initialPosts, isLoading: externalLoading }: Po
   const [posts, setPosts] = useState<Post[]>(initialPosts || [])
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({})
   const [isLoading, setIsLoading] = useState(!initialPosts)
+  const [error, setError] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
   const [sortBy, setSortBy] = useState<SortBy>('latest')
   const [likingPostId, setLikingPostId] = useState<string | null>(null)
   const { user } = useAuth()
@@ -52,6 +54,33 @@ export function PostList({ posts: initialPosts, isLoading: externalLoading }: Po
     setCommentCounts(counts);
   };
 
+  const fetchPosts = async (retry = false) => {
+    if (retry) {
+      setRetryCount(prev => prev + 1)
+    }
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      console.log('Fetching posts with sortBy:', sortBy) // Debug log
+      const data = await getPosts(sortBy)
+      console.log('Received posts:', data) // Debug log
+      
+      if (!data || !Array.isArray(data)) {
+        throw new Error('Invalid response format')
+      }
+      
+      setPosts(data)
+      fetchCommentCounts(data)
+    } catch (error) {
+      console.error("Failed to fetch posts:", error)
+      setError(t('fetch_posts_error'))
+      setPosts([])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   useEffect(() => {
     if (initialPosts) {
       setPosts(initialPosts)
@@ -59,26 +88,25 @@ export function PostList({ posts: initialPosts, isLoading: externalLoading }: Po
       return
     }
 
-    const fetchPosts = async () => {
-      setIsLoading(true)
-      try {
-        const data = await getPosts(sortBy)
-        setPosts(data)
-        fetchCommentCounts(data)
-      } catch (error) {
-        console.error("Failed to fetch posts:", error)
-        toast({
-          title: t('error'),
-          description: t('fetch_posts_error'),
-          variant: "destructive",
-        })
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
     fetchPosts()
-  }, [sortBy, initialPosts, t, toast])
+  }, [sortBy, initialPosts])
+
+  const handleRetry = () => {
+    if (retryCount < 3) { // Limit retries
+      fetchPosts(true)
+    } else {
+      toast({
+        title: t('error'),
+        description: t('max_retries_reached'),
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleSortChange = (newSortBy: SortBy) => {
+    setSortBy(newSortBy)
+    setIsLoading(true) // Show loading state immediately
+  }
 
   const handleLike = async (post: Post) => {
     if (!user) {
@@ -114,7 +142,19 @@ export function PostList({ posts: initialPosts, isLoading: externalLoading }: Po
     )
   }
 
-  if (posts.length === 0) {
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-10 space-y-4">
+        <p className="text-red-500">{error}</p>
+        <Button onClick={handleRetry} variant="outline" size="sm" disabled={retryCount >= 3}>
+          <RefreshCcw className="w-4 h-4 mr-2" />
+          {t('retry')}
+        </Button>
+      </div>
+    )
+  }
+
+  if (!posts.length) {
     return <div className="text-center py-10 text-muted-foreground">{t('no_posts')}</div>
   }
 
@@ -124,17 +164,19 @@ export function PostList({ posts: initialPosts, isLoading: externalLoading }: Po
         <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
           <Button 
             variant={sortBy === 'latest' ? "default" : "outline"}
-            onClick={() => setSortBy('latest')}
+            onClick={() => handleSortChange('latest')}
             className="transition-all flex-1 sm:flex-none text-sm"
             size="sm"
+            disabled={isLoading}
           >
             {t('latest_posts')}
           </Button>
           <Button 
             variant={sortBy === 'popular' ? "default" : "outline"}
-            onClick={() => setSortBy('popular')}
+            onClick={() => handleSortChange('popular')}
             className="transition-all flex-1 sm:flex-none text-sm"
             size="sm"
+            disabled={isLoading}
           >
             {t('popular_posts')}
           </Button>
@@ -147,7 +189,7 @@ export function PostList({ posts: initialPosts, isLoading: externalLoading }: Po
             {post.photo && post.photo.length > 0 && (
               <div className="relative h-40 sm:h-48 md:h-40 lg:h-48 overflow-hidden">
                 <Image
-                  src={`${process.env.NEXT_PUBLIC_API_URL}${post.photo[0]}`}
+                  src={post.photo[0].startsWith('http') ? post.photo[0] : `${process.env.NEXT_PUBLIC_API_URL}${post.photo[0]}`}
                   alt={post.title}
                   fill
                   className="object-cover transition-transform duration-300 hover:scale-105"
@@ -176,7 +218,7 @@ export function PostList({ posts: initialPosts, isLoading: externalLoading }: Po
                       </p>
                     </div>
                   </div>
-                ) : (
+                ) : post.author && (
                   <div className="flex items-center gap-2">
                     <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                       <AvatarImage src={post.author.avatar || ""} alt={post.author.fullname} />

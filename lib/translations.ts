@@ -116,6 +116,8 @@ type TranslationKeys =
   | "delete_button"
   | "deleting_post"
   | "fetch_posts_error"
+  | "retry"
+  | "max_retries_reached"
 
 type Translations = {
   [K in Language]: {
@@ -240,6 +242,8 @@ export const translations: Translations = {
     delete_button: "O'chirish",
     deleting_post: "O'chirilmoqda...",
     fetch_posts_error: "Maqolalarni yuklashda xatolik yuz berdi",
+    retry: "Qayta urinish",
+    max_retries_reached: "Maksimal urinishlar soniga yetildi",
   },
   en: {
     latest_posts: "Latest Posts",
@@ -357,6 +361,8 @@ export const translations: Translations = {
     delete_button: "Delete",
     deleting_post: "Deleting...",
     fetch_posts_error: "Failed to fetch posts",
+    retry: "Retry",
+    max_retries_reached: "Maximum retries reached",
   },
   ru: {
     latest_posts: "Последние статьи",
@@ -474,5 +480,7 @@ export const translations: Translations = {
     delete_button: "Удалить",
     deleting_post: "Удаление...",
     fetch_posts_error: "Не удалось загрузить публикации",
+    retry: "Повторить",
+    max_retries_reached: "Достигнуто максимальное количество попыток",
   }
 }

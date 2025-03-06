@@ -8,13 +8,15 @@ import type { Language } from "@/lib/constants"
 // Generate dynamic metadata for each post
 export async function generateMetadata({ params }: { params: { slug: string; lang: Language } }): Promise<Metadata> {
   try {
-    const post = await getPost(params.slug)
+    // Await the params object before accessing its properties
+    const resolvedParams = await Promise.resolve(params)
+    const post = await getPost(resolvedParams.slug)
     const description = post.description.substring(0, 160)
     const ogImage = post.photo && post.photo[0] ? `${process.env.NEXT_PUBLIC_API_URL}${post.photo[0]}` : undefined
 
     // Merge with base metadata
     return {
-      ...generateSiteMetadata(params.lang),
+      ...generateSiteMetadata(resolvedParams.lang),
       title: post.title,
       description,
       openGraph: {
@@ -41,8 +43,10 @@ export async function generateMetadata({ params }: { params: { slug: string; lan
 // This is a Server Component
 export default async function PostPage({ params }: { params: { slug: string } }) {
   try {
-    const post = await getPost(params.slug)
-    return <ClientPost initialPost={post} postSlug={params.slug} />
+    // Await the params object before accessing its properties
+    const resolvedParams = await Promise.resolve(params)
+    const post = await getPost(resolvedParams.slug)
+    return <ClientPost initialPost={post} postSlug={resolvedParams.slug} />
   } catch (error) {
     notFound()
   }
