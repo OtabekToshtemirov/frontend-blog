@@ -4,7 +4,7 @@ import { getStoredToken } from '../utils';
 // Updated BASE_URL to match your .env configuration with no /api suffix
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4444';
 
-console.log('API Base URL:', BASE_URL); // Debug log
+ // Debug log
 
 // Create a configured axios instance
 export const api = axios.create({

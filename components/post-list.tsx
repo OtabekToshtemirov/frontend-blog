@@ -19,7 +19,7 @@ import type { Post, SortBy } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/hooks/use-translation"
 
-interface PostListProps {
+interface PostListProps {console\.log\(.*?\);?
   posts?: Post[]
   isLoading?: boolean
 }
@@ -62,9 +62,9 @@ export function PostList({ posts: initialPosts, isLoading: externalLoading }: Po
     setError(null)
     
     try {
-      console.log('Fetching posts with sortBy:', sortBy) // Debug log
+       // Debug log
       const data = await getPosts(sortBy)
-      console.log('Received posts:', data) // Debug log
+       // Debug log
       
       if (!data || !Array.isArray(data)) {
         throw new Error('Invalid response format')
