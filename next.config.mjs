@@ -32,12 +32,7 @@ const nextConfig = {
         pathname: '/**',
       },
     ],
-  },
-  experimental: {
-    webpackBuildWorker: true,
-    parallelServerBuildTraces: true,
-    parallelServerCompiles: true,
-  },
+  }
 }
 
 export default nextConfig

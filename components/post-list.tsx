@@ -4,30 +4,30 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import ReactMarkdown from 'react-markdown'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { formatDistanceToNow } from "date-fns"
 import { Heart, MessageSquare, Eye, Loader2, User } from "lucide-react"
-import { getPosts, getPostsByTag, likePost, type SortBy } from "@/lib/api/posts"
+import { getPosts, likePost, type SortBy } from "@/lib/api/posts"
 import { getComments } from "@/lib/api/comments"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/context/auth-context"
+import { useLanguage } from "@/context/language-context"
+import { formatTimeAgo, formatCount } from "@/lib/utils"
 import type { Post } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/hooks/use-translation"
-import { useLanguage } from "@/context/language-context"
-import { formatTimeAgo, formatCount } from "@/lib/utils"
 
 interface PostListProps {
-  tag?: string
+  posts?: Post[]
+  isLoading?: boolean
 }
 
-export function PostList({ tag }: PostListProps) {
-  const [posts, setPosts] = useState<Post[]>([])
+export function PostList({ posts: initialPosts, isLoading: externalLoading }: PostListProps) {
+  const [posts, setPosts] = useState<Post[]>(initialPosts || [])
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({})
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(!initialPosts)
   const [sortBy, setSortBy] = useState<SortBy>('latest')
   const [likingPostId, setLikingPostId] = useState<string | null>(null)
   const { user } = useAuth()
@@ -53,27 +53,38 @@ export function PostList({ tag }: PostListProps) {
   };
 
   useEffect(() => {
+    if (initialPosts) {
+      setPosts(initialPosts)
+      fetchCommentCounts(initialPosts)
+      return
+    }
+
     const fetchPosts = async () => {
       setIsLoading(true)
       try {
-        const data = tag ? await getPostsByTag(tag) : await getPosts(sortBy)
+        const data = await getPosts(sortBy)
         setPosts(data)
         fetchCommentCounts(data)
       } catch (error) {
         console.error("Failed to fetch posts:", error)
+        toast({
+          title: t('error'),
+          description: t('fetch_posts_error'),
+          variant: "destructive",
+        })
       } finally {
         setIsLoading(false)
       }
     }
 
     fetchPosts()
-  }, [tag, sortBy])
+  }, [sortBy, initialPosts, t, toast])
 
   const handleLike = async (post: Post) => {
     if (!user) {
       toast({
-        title: "Authentication required",
-        description: "Please log in to like posts",
+        title: t('auth_required'),
+        description: t('auth_like_message'),
         variant: "destructive",
       })
       return
@@ -85,8 +96,8 @@ export function PostList({ tag }: PostListProps) {
       setPosts(posts.map(p => p._id === post._id ? updatedPost : p))
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to like the post",
+        title: t('error'),
+        description: t('like_error'),
         variant: "destructive",
       })
     } finally {
@@ -94,7 +105,7 @@ export function PostList({ tag }: PostListProps) {
     }
   }
 
-  if (isLoading) {
+  if (externalLoading || isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-10 space-y-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -104,12 +115,12 @@ export function PostList({ tag }: PostListProps) {
   }
 
   if (posts.length === 0) {
-    return <div className="text-center py-10">{t('no_posts')}</div>
+    return <div className="text-center py-10 text-muted-foreground">{t('no_posts')}</div>
   }
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {!tag && (
+      {!initialPosts && (
         <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
           <Button 
             variant={sortBy === 'latest' ? "default" : "outline"}
@@ -147,26 +158,26 @@ export function PostList({ tag }: PostListProps) {
 
             <CardContent className="p-3 sm:p-4">
               <Link href={`/posts/${post.slug}`}>
-                <CardTitle className="mb-3 sm:mb-4 hover:text-primary transition-colors line-clamp-2 text-base sm:text-lg">
+                <h2 className="mb-3 sm:mb-4 hover:text-primary transition-colors line-clamp-2 text-base sm:text-lg font-semibold">
                   {post.title}
-                </CardTitle>
+                </h2>
               </Link>
 
               <div className="flex items-center gap-2 mb-3 sm:mb-4">
                 {post.anonymous ? (
                   <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                      <User className="w-6 h-6 text-muted-foreground" />
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-muted flex items-center justify-center">
+                      <User className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                     </div>
                     <div>
-                      <p className="font-medium">{post.anonymousAuthor || 'Anonymous'}</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs sm:text-sm font-medium">{post.anonymousAuthor || t('anonymous_user')}</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground">
                         {formatTimeAgo(post.createdAt, language)}
                       </p>
                     </div>
                   </div>
                 ) : (
-                  <>
+                  <div className="flex items-center gap-2">
                     <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                       <AvatarImage src={post.author.avatar || ""} alt={post.author.fullname} />
                       <AvatarFallback>{post.author.fullname.charAt(0)}</AvatarFallback>
@@ -177,7 +188,7 @@ export function PostList({ tag }: PostListProps) {
                         {formatTimeAgo(post.createdAt, language)}
                       </p>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
 

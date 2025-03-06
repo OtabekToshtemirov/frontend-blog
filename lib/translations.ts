@@ -115,6 +115,7 @@ type TranslationKeys =
   | "edit_button"
   | "delete_button"
   | "deleting_post"
+  | "fetch_posts_error"
 
 type Translations = {
   [K in Language]: {
@@ -238,6 +239,7 @@ export const translations: Translations = {
     edit_button: "Tahrirlash",
     delete_button: "O'chirish",
     deleting_post: "O'chirilmoqda...",
+    fetch_posts_error: "Maqolalarni yuklashda xatolik yuz berdi",
   },
   en: {
     latest_posts: "Latest Posts",
@@ -354,6 +356,7 @@ export const translations: Translations = {
     edit_button: "Edit",
     delete_button: "Delete",
     deleting_post: "Deleting...",
+    fetch_posts_error: "Failed to fetch posts",
   },
   ru: {
     latest_posts: "Последние статьи",
@@ -470,5 +473,6 @@ export const translations: Translations = {
     edit_button: "Редактировать",
     delete_button: "Удалить",
     deleting_post: "Удаление...",
+    fetch_posts_error: "Не удалось загрузить публикации",
   }
 }
