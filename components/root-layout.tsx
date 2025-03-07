@@ -8,6 +8,8 @@ import { AuthProvider } from "@/context/auth-context"
 import { LanguageProvider } from "@/context/language-context"
 import { GoogleAnalytics } from "@/components/google-analytics"
 import type { Language } from "@/lib/constants"
+import { usePathname } from "next/navigation"
+import { useMemo } from "react"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -17,13 +19,44 @@ interface RootLayoutContentProps {
 }
 
 export function RootLayoutContent({ children, lang }: RootLayoutContentProps) {
-  const canonicalUrl = `https://otablog.uz${typeof window !== 'undefined' ? window.location.pathname : ''}`
+  const pathname = usePathname()
+  
+  // Create absolute URL for canonical and hreflang tags
+  const baseUrl = "https://otablog.uz"
+  
+  // Get path without language prefix for hreflang alternates
+  const pathWithoutLang = useMemo(() => {
+    // Remove language prefix from path
+    if (pathname === `/${lang}`) return "/"
+    if (pathname.startsWith(`/${lang}/`)) {
+      return pathname.substring(lang.length + 1)
+    }
+    return pathname
+  }, [pathname, lang])
+  
+  // Build canonical URL - current page with language
+  const canonicalUrl = `${baseUrl}${pathname}`
+  
+  // Generate hreflang URLs for all supported languages
+  const hreflangUrls = {
+    en: `${baseUrl}${lang === "en" ? pathname : `/en${pathWithoutLang}`}`,
+    uz: `${baseUrl}${lang === "uz" ? pathname : `/uz${pathWithoutLang}`}`,
+    ru: `${baseUrl}${lang === "ru" ? pathname : `/ru${pathWithoutLang}`}`,
+  }
 
   return (
     <html lang={lang} suppressHydrationWarning>
     <head>
       <GoogleAnalytics />
+      {/* Canonical URL - always point to the current page URL */}
       <link rel="canonical" href={canonicalUrl} />
+      
+      {/* Hreflang tags with absolute URLs */}
+      <link rel="alternate" hrefLang="en" href={hreflangUrls.en} />
+      <link rel="alternate" hrefLang="uz" href={hreflangUrls.uz} />
+      <link rel="alternate" hrefLang="ru" href={hreflangUrls.ru} />
+      <link rel="alternate" hrefLang="x-default" href={`${baseUrl}/`} />
+      
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <meta property="og:site_name" content="Otablog" />
       <meta property="og:locale" content={lang} />
