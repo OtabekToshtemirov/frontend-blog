@@ -216,22 +216,22 @@ export function CommentSection({ postSlug, initialComments, onCommentCountChange
               </div>
             ) : (
               <Avatar className="h-10 w-10">
-                <AvatarImage src={comment.author.avatar || ""} />
-                <AvatarFallback>{comment.author.fullname.charAt(0)}</AvatarFallback>
+                <AvatarImage src={comment.author?.avatar || ""} />
+                <AvatarFallback>{comment.author?.fullname.charAt(0)}</AvatarFallback>
               </Avatar>
             )}
             <div className="flex-1 space-y-2">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">
-                    {comment.anonymous ? comment.anonymousAuthor : comment.author.fullname}
+                    {comment.anonymous ? comment.anonymousAuthor : comment.author?.fullname}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {formatTimeAgo(comment.createdAt, language)}
                   </p>
                 </div>
                 {/* Only show edit/delete if not anonymous and is author */}
-                {!comment.anonymous && user && user._id === comment.author._id && (
+                {!comment.anonymous && user && comment.author && user._id === comment.author._id && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="sm">

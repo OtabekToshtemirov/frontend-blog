@@ -27,6 +27,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useTranslation } from "@/hooks/use-translation"
+import { isPostLikedByUser, getLikesCount } from "@/lib/adapters/post-adapter"
 
 interface PostDetailProps {
   post: Post
@@ -45,7 +46,7 @@ export function PostDetail({ post, commentCount = 0 }: PostDetailProps) {
   const { t } = useTranslation()
 
   const isAuthor = user && user._id === currentPost.author._id && !currentPost.anonymous
-  const hasLiked = user && currentPost.likes.includes(user._id)
+  const hasLiked = user ? isPostLikedByUser(currentPost, user._id) : false;
 
   const handleLike = async () => {
     if (!user) {
@@ -59,13 +60,10 @@ export function PostDetail({ post, commentCount = 0 }: PostDetailProps) {
 
     setIsLiking(true)
     try {
+      // O'zgartirilgan postni olish
       const updatedPost = await likePost(currentPost.slug)
+      // Adapteri to'g'ri ishlagan bo'lsa, post ma'lumotlari to'g'ri formatda bo'lishi kerak
       setCurrentPost(updatedPost)
-      // Optimistically update likes count
-      const newLikes = currentPost.likes.includes(user._id)
-        ? currentPost.likes.filter(id => id !== user._id)
-        : [...currentPost.likes, user._id]
-      setCurrentPost(prev => ({ ...prev, likes: newLikes }))
     } catch (error) {
       toast({
         title: t('like_failed'),
@@ -97,7 +95,11 @@ export function PostDetail({ post, commentCount = 0 }: PostDetailProps) {
     }
   }
 
-  const { likeCount = currentPost.likes.length, viewCount = currentPost.views } = currentPost.stats || {}
+  // Stats obyektidan ma'lumotlarni adapter orqali olish
+  const likeCount = getLikesCount(currentPost);
+  const viewCount = currentPost.stats?.viewCount !== undefined 
+    ? currentPost.stats.viewCount 
+    : currentPost.views;
 
   return (
     <article className="max-w-4xl mx-auto space-y-6">

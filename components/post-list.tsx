@@ -18,6 +18,7 @@ import { formatTimeAgo, formatCount } from "@/lib/utils"
 import type { Post, SortBy } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/hooks/use-translation"
+import { isPostLikedByUser, getLikesCount } from "@/lib/adapters/post-adapter"
 
 interface PostListProps {
   posts?: Post[]
@@ -108,6 +109,7 @@ export function PostList({ posts: initialPosts, isLoading: externalLoading }: Po
     setIsLoading(true) // Show loading state immediately
   }
 
+  // Like knopkasi bosilganda
   const handleLike = async (post: Post) => {
     if (!user) {
       toast({
@@ -264,17 +266,18 @@ export function PostList({ posts: initialPosts, isLoading: externalLoading }: Po
                       {likingPostId === post._id ? (
                         <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                       ) : (
+                        // Like ko'rsatish joyida
                         <Heart 
                           className={cn(
                             "h-3 w-3 sm:h-4 sm:w-4 transition-all",
                             "group-hover:scale-110 group-hover:text-red-500",
-                            user && post.likes.includes(user._id) && "fill-current text-red-500"
+                            user && isPostLikedByUser(post, user._id) && "fill-current text-red-500"
                           )} 
                         />
                       )}
                       <span className="text-[10px] sm:text-xs group-hover:text-red-500 transition-colors">
-                        <span className="hidden sm:inline">{formatCount(post.likes.length, 'n_likes', language)}</span>
-                        <span className="sm:hidden">{post.likes.length}</span>
+                        <span className="hidden sm:inline">{formatCount(getLikesCount(post), 'n_likes', language)}</span>
+                        <span className="sm:hidden">{getLikesCount(post)}</span>
                       </span>
                     </div>
                   </Button>

@@ -1,5 +1,6 @@
 import { api } from './axios';
 import type { Post, PaginatedResponse } from '../types';
+import { adaptPost, adaptPosts } from '../adapters/post-adapter';
 
 export async function getPosts(sortBy?: string): Promise<Post[]> {
   try {
@@ -13,17 +14,17 @@ export async function getPosts(sortBy?: string): Promise<Post[]> {
     
     // Yangi response formatiga moslashish - agar posts maydoni mavjud bo'lsa, uni qaytarish
     if (data && data.posts && Array.isArray(data.posts)) {
-      return data.posts;
+      return adaptPosts(data.posts);
     }
     
     // Eski format uchun - agar data o'zi array bo'lsa
     if (Array.isArray(data)) {
-      return data;
+      return adaptPosts(data);
     }
     
     return [];
   } catch (error) {
-    
+    console.error('Error fetching posts:', error);
     return [];
   }
 }
@@ -40,12 +41,15 @@ export async function getPostsPaginated(page: number = 1, limit: number = 10, so
     const { data } = await api.get(`/posts?page=${page}&limit=${limit}${sortParam ? `&sortBy=${sortParam}` : ''}`);
     
     if (data && data.posts && data.pagination) {
-      return data;
+      return {
+        posts: adaptPosts(data.posts),
+        pagination: data.pagination
+      };
     }
     
     // Agar response to'g'ri formatda bo'lmasa
     return {
-      posts: Array.isArray(data) ? data : [],
+      posts: Array.isArray(data) ? adaptPosts(data) : [],
       pagination: {
         total: 0,
         page,
@@ -54,7 +58,7 @@ export async function getPostsPaginated(page: number = 1, limit: number = 10, so
       }
     };
   } catch (error) {
-    
+    console.error('Error fetching paginated posts:', error);
     return {
       posts: [],
       pagination: {
@@ -70,24 +74,24 @@ export async function getPostsPaginated(page: number = 1, limit: number = 10, so
 export async function getPost(slug: string): Promise<Post | null> {
   try {
     const { data } = await api.get(`/posts/${slug}`);
-    return data;
+    return data ? adaptPost(data) : null;
   } catch (error) {
-    
+    console.error('Error fetching post:', error);
     return null;
   }
 }
 
 export async function getPostBySlug(slug: string): Promise<Post> {
   const { data } = await api.get(`/posts/${slug}`);
-  return data;
+  return adaptPost(data);
 }
 
 export async function getLatestPosts(limit: number = 5): Promise<Post[]> {
   try {
     const { data } = await api.get(`/posts/latest?limit=${limit}`);
-    return data;
+    return Array.isArray(data) ? adaptPosts(data) : [];
   } catch (error) {
-    
+    console.error('Error fetching latest posts:', error);
     return [];
   }
 }
@@ -95,9 +99,9 @@ export async function getLatestPosts(limit: number = 5): Promise<Post[]> {
 export async function getMostViewedPosts(limit: number = 5): Promise<Post[]> {
   try {
     const { data } = await api.get(`/posts/popular?limit=${limit}`);
-    return data;
+    return Array.isArray(data) ? adaptPosts(data) : [];
   } catch (error) {
-    
+    console.error('Error fetching most viewed posts:', error);
     return [];
   }
 }
@@ -111,7 +115,7 @@ export async function createPost(postData: {
   isPublished?: boolean;
 }): Promise<Post> {
   const { data } = await api.post('/posts', postData);
-  return data;
+  return adaptPost(data);
 }
 
 export async function updatePost(
@@ -126,7 +130,7 @@ export async function updatePost(
   }
 ): Promise<Post> {
   const { data } = await api.patch(`/posts/${slug}`, postData);
-  return data;
+  return adaptPost(data);
 }
 
 export async function deletePost(slug: string): Promise<void> {
@@ -135,15 +139,15 @@ export async function deletePost(slug: string): Promise<void> {
 
 export async function likePost(slug: string): Promise<Post> {
   const { data } = await api.post(`/posts/${slug}/like`);
-  return data;
+  return adaptPost(data);
 }
 
 export async function getPostsByTag(tag: string): Promise<Post[]> {
   try {
     const { data } = await api.get(`/posts/tag/${tag}`);
-    return data;
+    return Array.isArray(data) ? adaptPosts(data) : [];
   } catch (error) {
-    
+    console.error('Error fetching posts by tag:', error);
     return [];
   }
 }
@@ -153,7 +157,7 @@ export async function getLastTags(): Promise<{name: string, count: number}[]> {
     const { data } = await api.get('/tags');
     return data;
   } catch (error) {
-    
+    console.error('Error fetching tags:', error);
     return [];
   }
 }

@@ -72,12 +72,12 @@ export function LatestComments() {
           >
             <div className="flex items-start space-x-2 sm:space-x-3">
               <Avatar className="h-6 w-6 sm:h-8 sm:w-8 shrink-0">
-                <AvatarImage src={comment.author.avatar || ""} alt={comment.author.fullname} />
-                <AvatarFallback>{comment.author.fullname.charAt(0)}</AvatarFallback>
+                <AvatarImage src={comment.author?.avatar || ""} alt={comment.author?.fullname ?? ""} />
+                <AvatarFallback>{comment.author?.fullname?.charAt(0) ?? ""}</AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1 space-y-1">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs sm:text-sm font-medium truncate">{comment.author.fullname}</p>
+                  <p className="text-xs sm:text-sm font-medium truncate">{comment.author?.fullname}</p>
                   <p className="text-[10px] sm:text-xs text-muted-foreground shrink-0">
                     {formatTimeAgo(comment.createdAt, language)}
                   </p>
@@ -87,9 +87,9 @@ export function LatestComments() {
                   <span className="shrink-0">{t('view_post')}</span>
                   <ArrowRight className="h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0" />
                   <span className="font-medium truncate">
-                    {typeof comment.post === 'object' && comment.post 
+                    {typeof comment.post === 'object' && comment.post && comment.post.title 
                       ? comment.post.title 
-                      : comment.postTitle || t('no_posts')}
+                      : t('no_posts')}
                   </span>
                 </div>
               </div>
