@@ -118,6 +118,10 @@ type TranslationKeys =
   | "fetch_posts_error"
   | "retry"
   | "max_retries_reached"
+  | "login_failed"
+  | "registration_failed"
+  | "registration_successful"  // Yangi qo'shildi
+  | "login_redirect"           // Yangi qo'shildi
 
 type Translations = {
   [K in Language]: {
@@ -244,6 +248,10 @@ export const translations: Translations = {
     fetch_posts_error: "Maqolalarni yuklashda xatolik yuz berdi",
     retry: "Qayta urinish",
     max_retries_reached: "Maksimal urinishlar soniga yetildi",
+    login_failed: "Tizimga kirishda xatolik yuz berdi",
+    registration_failed: "Ro'yxatdan o'tishda xatolik yuz berdi",
+    registration_successful: "Ro'yxatdan o'tish muvaffaqiyatli yakunlandi",
+    login_redirect: "Tizimga kirish sahifasiga yo'naltirilmoqdasiz..."
   },
   en: {
     latest_posts: "Latest Posts",
@@ -363,6 +371,10 @@ export const translations: Translations = {
     fetch_posts_error: "Failed to fetch posts",
     retry: "Retry",
     max_retries_reached: "Maximum retries reached",
+    login_failed: "Failed to login",
+    registration_failed: "Failed to register",
+    registration_successful: "Registration successful",
+    login_redirect: "Redirecting to login page..."
   },
   ru: {
     latest_posts: "Последние статьи",
@@ -482,5 +494,9 @@ export const translations: Translations = {
     fetch_posts_error: "Не удалось загрузить публикации",
     retry: "Повторить",
     max_retries_reached: "Достигнуто максимальное количество попыток",
+    login_failed: "Не удалось войти в систему",
+    registration_failed: "Ошибка при регистрации",
+    registration_successful: "Регистрация успешна",
+    login_redirect: "Перенаправление на страницу входа..."
   }
 }

@@ -23,7 +23,7 @@ export async function getPosts(sortBy?: string): Promise<Post[]> {
     
     return [];
   } catch (error) {
-    console.error('Failed to fetch posts:', error);
+    
     return [];
   }
 }
@@ -54,7 +54,7 @@ export async function getPostsPaginated(page: number = 1, limit: number = 10, so
       }
     };
   } catch (error) {
-    console.error('Failed to fetch paginated posts:', error);
+    
     return {
       posts: [],
       pagination: {
@@ -72,7 +72,7 @@ export async function getPost(slug: string): Promise<Post | null> {
     const { data } = await api.get(`/posts/${slug}`);
     return data;
   } catch (error) {
-    console.error(`Failed to fetch post ${slug}:`, error);
+    
     return null;
   }
 }
@@ -82,7 +82,7 @@ export async function getLatestPosts(limit: number = 5): Promise<Post[]> {
     const { data } = await api.get(`/posts/latest?limit=${limit}`);
     return data;
   } catch (error) {
-    console.error('Failed to fetch latest posts:', error);
+    
     return [];
   }
 }
@@ -92,7 +92,7 @@ export async function getMostViewedPosts(limit: number = 5): Promise<Post[]> {
     const { data } = await api.get(`/posts/popular?limit=${limit}`);
     return data;
   } catch (error) {
-    console.error('Failed to fetch popular posts:', error);
+    
     return [];
   }
 }
@@ -138,7 +138,7 @@ export async function getPostsByTag(tag: string): Promise<Post[]> {
     const { data } = await api.get(`/posts/tag/${tag}`);
     return data;
   } catch (error) {
-    console.error(`Failed to fetch posts for tag ${tag}:`, error);
+    
     return [];
   }
 }
@@ -148,7 +148,7 @@ export async function getLastTags(): Promise<{name: string, count: number}[]> {
     const { data } = await api.get('/tags');
     return data;
   } catch (error) {
-    console.error('Failed to fetch tags:', error);
+    
     return [];
   }
 }

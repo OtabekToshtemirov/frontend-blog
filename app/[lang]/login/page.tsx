@@ -10,9 +10,13 @@ import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/context/auth-context"
 import { useTranslation } from "@/hooks/use-translation"
 import { useState } from "react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ApiError } from "@/lib/api/auth"
 
 export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
+  const [generalError, setGeneralError] = useState<string | null>(null)
   const router = useRouter()
   const { login } = useAuth()
   const { toast } = useToast()
@@ -20,6 +24,10 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    
+    // Formalarni tozalash
+    setFormErrors({})
+    setGeneralError(null)
     setIsSubmitting(true)
 
     const formData = new FormData(e.currentTarget)
@@ -30,12 +38,58 @@ export default function LoginPage() {
       await login(email, password)
       const baseUrl = `/${language}`;
       router.replace(baseUrl)
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to login",
-        variant: "destructive",
-      })
+    } catch (error: any) {
+      
+      
+      // Agar backenddan kelgan api errorda xatolar mavjud bo'lsa, ularni ko'rsatish
+      if (error.errors && Array.isArray(error.errors)) {
+        // Xatolarni field bo'yicha guruhlash
+        const fieldErrors: Record<string, string> = {};
+        const generalErrors: string[] = [];
+        
+        error.errors.forEach((err: {field?: string; message: string}) => {
+          if (err.field) {
+            fieldErrors[err.field] = err.message;
+          } else {
+            generalErrors.push(err.message);
+          }
+        });
+        
+        setFormErrors(fieldErrors);
+        
+        if (generalErrors.length > 0) {
+          setGeneralError(generalErrors.join(", "));
+        }
+      } else if (error.response?.data?.errors) {
+        // Backend validation errors in axios format
+        const backendErrors = error.response.data.errors;
+        const fieldErrors: Record<string, string> = {};
+        const generalErrors: string[] = [];
+        
+        backendErrors.forEach((err: {field?: string; message: string}) => {
+          if (err.field) {
+            fieldErrors[err.field] = err.message;
+          } else {
+            generalErrors.push(err.message);
+          }
+        });
+        
+        setFormErrors(fieldErrors);
+        
+        if (generalErrors.length > 0) {
+          setGeneralError(generalErrors.join(", "));
+        }
+      } else {
+        // Umumiy xatolik xabarini ko'rsatish
+        const errorMessage = error.message || t('login_failed');
+        setGeneralError(errorMessage);
+        
+        toast({
+          title: t('error'),
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -53,9 +107,17 @@ export default function LoginPage() {
         </p>
       </div>
 
+      {generalError && (
+        <Alert variant="destructive" className="text-sm">
+          <AlertDescription>{generalError}</AlertDescription>
+        </Alert>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email">{t('email')}</Label>
+          <Label htmlFor="email" className={formErrors.email ? "text-destructive" : ""}>
+            {t('email')}
+          </Label>
           <Input
             id="email"
             name="email"
@@ -63,17 +125,27 @@ export default function LoginPage() {
             placeholder="hello@example.com"
             required
             autoComplete="email"
+            className={formErrors.email ? "border-destructive" : ""}
           />
+          {formErrors.email && (
+            <p className="text-destructive text-xs mt-1">{formErrors.email}</p>
+          )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">{t('password')}</Label>
+          <Label htmlFor="password" className={formErrors.password ? "text-destructive" : ""}>
+            {t('password')}
+          </Label>
           <Input
             id="password"
             name="password"
             type="password"
             required
             autoComplete="current-password"
+            className={formErrors.password ? "border-destructive" : ""}
           />
+          {formErrors.password && (
+            <p className="text-destructive text-xs mt-1">{formErrors.password}</p>
+          )}
         </div>
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? (

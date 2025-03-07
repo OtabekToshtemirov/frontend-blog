@@ -18,7 +18,7 @@ export function TagCloud() {
         const data = await getLastTags()
         setTags(data)
       } catch (error) {
-        console.error("Failed to fetch tags:", error)
+        
       } finally {
         setIsLoading(false)
       }

@@ -32,7 +32,7 @@ export function TagPageClient({ initialPosts, tag, error: initialError }: TagPag
         setPosts(data)
         setError(false)
       } catch (error) {
-        console.error("Failed to fetch posts:", error)
+        
         setError(true)
         toast({
           title: t('error'),

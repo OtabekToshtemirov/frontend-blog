@@ -21,7 +21,7 @@ export async function getLatestComments(limit: number = 5): Promise<Comment[]> {
     const { data } = await api.get(`/comments/latest?limit=${limit}`);
     return data;
   } catch (error) {
-    console.error("Error fetching latest comments:", error);
+    
     return [];
   }
 }

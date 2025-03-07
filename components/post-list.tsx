@@ -46,7 +46,7 @@ export function PostList({ posts: initialPosts, isLoading: externalLoading }: Po
           const comments = await getComments(post.slug);
           counts[post._id] = comments.length;
         } catch (error) {
-          console.error(`Failed to fetch comments for post ${post.slug}:`, error);
+          
           counts[post._id] = 0;
         }
       })
@@ -62,9 +62,9 @@ export function PostList({ posts: initialPosts, isLoading: externalLoading }: Po
     setError(null)
     
     try {
-      console.log('Fetching posts with sortBy:', sortBy) // Debug log
+       // Debug log
       const data = await getPosts(sortBy)
-      console.log('Received posts:', data) // Debug log
+       // Debug log
       
       if (!data || !Array.isArray(data)) {
         throw new Error('Invalid response format')
@@ -73,7 +73,7 @@ export function PostList({ posts: initialPosts, isLoading: externalLoading }: Po
       setPosts(data)
       fetchCommentCounts(data)
     } catch (error) {
-      console.error("Failed to fetch posts:", error)
+      
       setError(t('fetch_posts_error'))
       setPosts([])
     } finally {

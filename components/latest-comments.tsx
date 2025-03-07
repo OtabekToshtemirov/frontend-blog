@@ -23,7 +23,8 @@ export function LatestComments() {
         const data = await getLatestComments(5)
         setComments(data)
       } catch (error) {
-        console.error("Failed to fetch latest comments:", error)
+        console.error('Failed to fetch latest comments:', error)
+        // Return empty array is already handled in getLatestComments
       } finally {
         setIsLoading(false)
       }

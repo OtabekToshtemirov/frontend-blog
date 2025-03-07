@@ -13,7 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     routes.map(route => ({
       url: `${baseUrl}/${locale}${route}`,
       lastModified: new Date(),
-      changeFrequency: 'daily' as const,
+      changeFrequency: 'daily',
       priority: locale === 'uz' ? 1 : 0.9, // Higher priority for default language
     }))
   )
@@ -27,7 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       posts.map(post => ({
         url: `${baseUrl}/${locale}/posts/${post.slug}`,
         lastModified: new Date(post.updatedAt),
-        changeFrequency: 'weekly' as const,
+        changeFrequency: 'weekly',
         priority: locale === 'uz' ? 0.8 : 0.7, // Higher priority for default language
       }))
     )

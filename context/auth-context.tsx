@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userData = await getMe()
       setUser(userData)
     } catch (error) {
-      console.error("Auth check failed:", error)
+      
       localStorage.removeItem("token")
       localStorage.removeItem("tokenExpiration")
       setUser(null)
