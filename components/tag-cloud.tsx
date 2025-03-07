@@ -34,13 +34,16 @@ export function TagCloud() {
       .sort((a, b) => b.count - a.count)
   }, [tags])
 
+  // Common container style with minimum height to prevent layout shift
+  const containerClassName = "space-y-4 min-h-[120px]"
+
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className={containerClassName}>
         <h2 className="text-xl font-bold">{t('popular_tags')}</h2>
         <div className="flex flex-wrap gap-2">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <Skeleton key={i} className="h-6 w-16" />
+          {Array.from({ length: 15 }).map((_, i) => (
+            <Skeleton key={i} className="h-6 w-20" />
           ))}
         </div>
       </div>
@@ -49,7 +52,7 @@ export function TagCloud() {
 
   if (sortedTags.length === 0) {
     return (
-      <div className="space-y-4">
+      <div className={containerClassName}>
         <h2 className="text-xl font-bold">{t('popular_tags')}</h2>
         <p className="text-muted-foreground">{t('no_tags')}</p>
       </div>
@@ -57,7 +60,7 @@ export function TagCloud() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className={containerClassName}>
       <h2 className="text-xl font-bold">{t('popular_tags')}</h2>
       <div className="flex flex-wrap gap-2">
         {sortedTags.map((tag) => (

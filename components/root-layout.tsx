@@ -7,8 +7,6 @@ import Header from "@/components/header"
 import { AuthProvider } from "@/context/auth-context"
 import { LanguageProvider } from "@/context/language-context"
 import { GoogleAnalytics } from "@/components/google-analytics"
-import Link from "@/next/link"
-import Head from 'next/head';
 import type { Language } from "@/lib/constants"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -42,7 +40,7 @@ export function RootLayoutContent({ children, lang }: RootLayoutContentProps) {
               <div className="min-h-screen flex flex-col">
                 <Header />
                 <main className="flex-1 container mx-auto px-4 py-6">{children}</main>
-                <footer className="border-t py-6">
+                <footer className="border-t py-6 min-h-[60px]">
                   <div className="container mx-auto px-4 text-center text-sm text-gray-500">
                     © {new Date().getFullYear()} Otablog. All rights reserved. Built with ❤️ in Uzbekistan by <a href="https://otabekengineer.site" className="text-primary">Otabek</a>
                   </div>

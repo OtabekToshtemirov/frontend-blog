@@ -172,14 +172,18 @@ export function PostDetail({ post, commentCount = 0 }: PostDetailProps) {
         </div>
 
         {currentPost.photo && currentPost.photo.length > 0 && (
-          <div className="relative h-[400px] rounded-lg overflow-hidden">
+          <div className="relative h-[400px] rounded-lg overflow-hidden bg-muted">
             <Image
-              src={`${process.env.NEXT_PUBLIC_API_URL}${currentPost.photo[0]}`}
+              src={currentPost.photo[0].startsWith('http') 
+                ? currentPost.photo[0] 
+                : `${process.env.NEXT_PUBLIC_API_URL}${currentPost.photo[0]}`}
               alt={currentPost.title}
               fill
+              priority={true}
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjFmMWYxIj48L3JlY3Q+PC9zdmc+"
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              priority
             />
           </div>
         )}

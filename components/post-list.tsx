@@ -189,11 +189,15 @@ export function PostList({ posts: initialPosts, isLoading: externalLoading }: Po
         {posts.map((post) => (
           <Card key={post._id} className="overflow-hidden hover:shadow-md transition-shadow">
             {post.photo && post.photo.length > 0 && (
-              <div className="relative h-40 sm:h-48 md:h-40 lg:h-48 overflow-hidden">
+              <div className="relative h-40 sm:h-48 md:h-40 lg:h-48 overflow-hidden bg-muted">
                 <Image
                   src={post.photo[0].startsWith('http') ? post.photo[0] : `${process.env.NEXT_PUBLIC_API_URL}${post.photo[0]}`}
                   alt={post.title}
                   fill
+                  loading={posts.indexOf(post) < 2 ? "eager" : "lazy"}
+                  priority={posts.indexOf(post) < 2}
+                  placeholder="blur"
+                  blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjFmMWYxIj48L3JlY3Q+PC9zdmc+"
                   className="object-cover transition-transform duration-300 hover:scale-105"
                   sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 40vw, 33vw"
                 />
