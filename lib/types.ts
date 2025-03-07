@@ -16,8 +16,12 @@ export interface Post {
   tags: string[];
   views: number;
   likes: string[];
-  comments: string[];
   author: User;
+  stats?: {
+    likeCount: number;
+    viewCount: number;
+    commentCount: number;
+  };
   anonymous: boolean;
   anonymousAuthor?: string;
   isPublished: boolean;

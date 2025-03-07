@@ -1,52 +1,50 @@
-import type { Metadata } from "next"
-import { notFound } from "next/navigation"
-import { getPost } from "@/lib/api/posts"
-import { ClientPost } from "./client"
-import { generateMetadata as generateSiteMetadata } from "@/lib/metadata"
-import type { Language } from "@/lib/constants"
+import { Metadata } from 'next'
+import { getPostBySlug } from '@/lib/api/posts'
+import { getComments } from '@/lib/api/comments'
+import { notFound } from 'next/navigation'
+import { ClientPage } from './client'
 
-// Generate dynamic metadata for each post
-export async function generateMetadata({ params }: { params: { slug: string; lang: Language } }): Promise<Metadata> {
-  try {
-    // Await the params object before accessing its properties
-    const resolvedParams = await Promise.resolve(params)
-    const post = await getPost(resolvedParams.slug)
-    const description = post.description.substring(0, 160)
-    const ogImage = post.photo && post.photo[0] ? `${process.env.NEXT_PUBLIC_API_URL}${post.photo[0]}` : undefined
-
-    // Merge with base metadata
-    return {
-      ...generateSiteMetadata(resolvedParams.lang),
-      title: post.title,
-      description,
-      openGraph: {
-        title: post.title,
-        description,
-        type: 'article',
-        publishedTime: post.createdAt,
-        modifiedTime: post.updatedAt,
-        authors: [post.author.fullname],
-        images: ogImage ? [ogImage] : [],
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title: post.title,
-        description,
-        images: ogImage ? [ogImage] : [],
-      },
-    }
-  } catch {
-    return generateSiteMetadata(params.lang)
+interface PostPageProps {
+  params: {
+    slug: string
+    lang: string
   }
 }
 
-// This is a Server Component
-export default async function PostPage({ params }: { params: { slug: string } }) {
+export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
   try {
-    // Await the params object before accessing its properties
-    const resolvedParams = await Promise.resolve(params)
-    const post = await getPost(resolvedParams.slug)
-    return <ClientPost initialPost={post} postSlug={resolvedParams.slug} />
+    const post = await getPostBySlug(params.slug)
+    
+    return {
+      title: post.title,
+      description: post.description.slice(0, 160),
+      openGraph: {
+        title: post.title,
+        description: post.description.slice(0, 160),
+        images: post.photo?.length ? [`${process.env.NEXT_PUBLIC_API_URL}${post.photo[0]}`] : [],
+      }
+    }
+  } catch (error) {
+    return {
+      title: 'Post Not Found',
+      description: 'The requested post could not be found.'
+    }
+  }
+}
+
+export default async function PostPage({ params }: PostPageProps) {
+  try {
+    // Parallel data fetching
+    const [post, comments] = await Promise.all([
+      getPostBySlug(params.slug),
+      getComments(params.slug)
+    ])
+
+    if (!post) {
+      notFound()
+    }
+
+    return <ClientPage post={post} initialComments={comments} />
   } catch (error) {
     notFound()
   }

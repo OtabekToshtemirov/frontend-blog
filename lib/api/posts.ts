@@ -77,6 +77,11 @@ export async function getPost(slug: string): Promise<Post | null> {
   }
 }
 
+export async function getPostBySlug(slug: string): Promise<Post> {
+  const { data } = await api.get(`/posts/${slug}`);
+  return data;
+}
+
 export async function getLatestPosts(limit: number = 5): Promise<Post[]> {
   try {
     const { data } = await api.get(`/posts/latest?limit=${limit}`);

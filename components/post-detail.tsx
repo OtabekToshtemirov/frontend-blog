@@ -97,10 +97,13 @@ export function PostDetail({ post, commentCount = 0 }: PostDetailProps) {
     }
   }
 
+  const { likeCount = currentPost.likes.length, viewCount = currentPost.views } = currentPost.stats || {}
+
   return (
-    <article className="space-y-8">
+    <article className="max-w-4xl mx-auto space-y-6">
       <div className="space-y-4">
-        <h1 className="text-3xl font-bold">{currentPost.title}</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold text-center">{currentPost.title}</h1>
+        
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {currentPost.anonymous ? (
@@ -165,74 +168,74 @@ export function PostDetail({ post, commentCount = 0 }: PostDetailProps) {
             </div>
           )}
         </div>
-      </div>
 
-      {currentPost.photo && currentPost.photo.length > 0 && (
-        <div className="relative h-[400px] rounded-lg overflow-hidden">
-          <Image
-            src={`${process.env.NEXT_PUBLIC_API_URL}${currentPost.photo[0]}`}
-            alt={currentPost.title}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            priority
-          />
+        {currentPost.photo && currentPost.photo.length > 0 && (
+          <div className="relative h-[400px] rounded-lg overflow-hidden">
+            <Image
+              src={`${process.env.NEXT_PUBLIC_API_URL}${currentPost.photo[0]}`}
+              alt={currentPost.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              priority
+            />
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2">
+          {currentPost.tags.map((tag) => (
+            <Link href={`/posts/tag/${encodeURIComponent(tag)}`} key={tag}>
+              <Badge variant="secondary" className="hover:bg-secondary/80">
+                #{tag}
+              </Badge>
+            </Link>
+          ))}
         </div>
-      )}
 
-      <div className="flex flex-wrap gap-2">
-        {currentPost.tags.map((tag) => (
-          <Link href={`/posts/tag/${encodeURIComponent(tag)}`} key={tag}>
-            <Badge variant="secondary" className="hover:bg-secondary/80">
-              #{tag}
-            </Badge>
-          </Link>
-        ))}
-      </div>
+        <div className="prose prose-lg dark:prose-invert max-w-none">
+          <ReactMarkdown>{currentPost.description}</ReactMarkdown>
+        </div>
 
-      <div className="prose prose-lg dark:prose-invert max-w-none">
-        <ReactMarkdown>{currentPost.description}</ReactMarkdown>
-      </div>
-
-      <div className="flex items-center gap-4 text-muted-foreground">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-auto p-0 hover:bg-transparent"
-          onClick={handleLike}
-          disabled={isLiking}
-        >
-          <div className="flex items-center gap-1 group">
-            {isLiking ? (
-              <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-            ) : (
-              <Heart 
-                className={cn(
-                  "h-4 w-4 sm:h-5 sm:w-5 transition-all",
-                  "group-hover:scale-110 group-hover:text-red-500",
-                  hasLiked && "fill-current text-red-500"
-                )} 
-              />
-            )}
-            <span className="text-xs sm:text-sm group-hover:text-red-500 transition-colors">
-              <span className="hidden sm:inline">{formatCount(currentPost.likes.length, 'n_likes', language)}</span>
-              <span className="sm:hidden">{currentPost.likes.length}</span>
+        <div className="flex items-center gap-4 text-muted-foreground">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-auto p-0 hover:bg-transparent"
+            onClick={handleLike}
+            disabled={isLiking}
+          >
+            <div className="flex items-center gap-1 group">
+              {isLiking ? (
+                <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+              ) : (
+                <Heart 
+                  className={cn(
+                    "h-4 w-4 sm:h-5 sm:w-5 transition-all",
+                    "group-hover:scale-110 group-hover:text-red-500",
+                    hasLiked && "fill-current text-red-500"
+                  )} 
+                />
+              )}
+              <span className="text-xs sm:text-sm group-hover:text-red-500 transition-colors">
+                <span className="hidden sm:inline">{formatCount(likeCount, 'n_likes', language)}</span>
+                <span className="sm:hidden">{likeCount}</span>
+              </span>
+            </div>
+          </Button>
+          <div className="flex items-center gap-1">
+            <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">{formatCount(commentCount, 'n_comments', language)}</span>
+              <span className="sm:hidden">{commentCount}</span>
             </span>
           </div>
-        </Button>
-        <div className="flex items-center gap-1">
-          <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />
-          <span className="text-xs sm:text-sm">
-            <span className="hidden sm:inline">{formatCount(commentCount, 'n_comments', language)}</span>
-            <span className="sm:hidden">{commentCount}</span>
-          </span>
-        </div>
-        <div className="flex items-center gap-1">
-          <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
-          <span className="text-xs sm:text-sm">
-            <span className="hidden sm:inline">{formatCount(currentPost.views, 'n_views', language)}</span>
-            <span className="sm:hidden">{currentPost.views}</span>
-          </span>
+          <div className="flex items-center gap-1">
+            <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">{formatCount(viewCount, 'n_views', language)}</span>
+              <span className="sm:hidden">{viewCount}</span>
+            </span>
+          </div>
         </div>
       </div>
     </article>

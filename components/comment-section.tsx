@@ -29,11 +29,12 @@ import { Label } from "@/components/ui/label"
 
 interface CommentSectionProps {
   postSlug: string
+  initialComments: Comment[]
   onCommentCountChange?: (count: number) => void
 }
 
-export function CommentSection({ postSlug, onCommentCountChange }: CommentSectionProps) {
-  const [comments, setComments] = useState<Comment[]>([])
+export function CommentSection({ postSlug, initialComments, onCommentCountChange }: CommentSectionProps) {
+  const [comments, setComments] = useState<Comment[]>(initialComments)
   const [newComment, setNewComment] = useState("")
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
