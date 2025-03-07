@@ -23,13 +23,7 @@ api.interceptors.request.use(
       config.headers['Authorization'] = `Bearer ${token}`;
     }
     
-    // Debug log for requests
-    console.log('API Request:', {
-      method: config.method,
-      url: config.url,
-      headers: config.headers,
-      data: config.data
-    });
+   
     
     // Add CORS headers
     config.headers['Access-Control-Allow-Origin'] = '*';
@@ -44,12 +38,7 @@ api.interceptors.request.use(
 // Add response interceptor to handle common errors
 api.interceptors.response.use(
   (response) => {
-    // Debug log for successful responses
-    console.log('API Response:', {
-      status: response.status,
-      data: response.data,
-      headers: response.headers
-    });
+    
     return response;
   },
   async (error) => {
