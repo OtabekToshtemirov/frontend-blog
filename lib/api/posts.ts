@@ -1,5 +1,5 @@
 import { api } from './axios';
-import type { Post } from '../types';
+import type { Post, PaginatedResponse } from '../types';
 
 export async function getPosts(sortBy?: string): Promise<Post[]> {
   try {
@@ -10,10 +10,60 @@ export async function getPosts(sortBy?: string): Promise<Post[]> {
     }
     
     const { data } = await api.get(`/posts${sortParam ? `?sortBy=${sortParam}` : ''}`);
-    return data;
+    
+    // Yangi response formatiga moslashish - agar posts maydoni mavjud bo'lsa, uni qaytarish
+    if (data && data.posts && Array.isArray(data.posts)) {
+      return data.posts;
+    }
+    
+    // Eski format uchun - agar data o'zi array bo'lsa
+    if (Array.isArray(data)) {
+      return data;
+    }
+    
+    return [];
   } catch (error) {
     console.error('Failed to fetch posts:', error);
     return [];
+  }
+}
+
+// Pagination bilan ishlaydigan alohida funksiya
+export async function getPostsPaginated(page: number = 1, limit: number = 10, sortBy?: string): Promise<PaginatedResponse<Post>> {
+  try {
+    // Map the sortBy values to what backend expects
+    let sortParam = '';
+    if (sortBy === 'popular') {
+      sortParam = 'views';
+    }
+    
+    const { data } = await api.get(`/posts?page=${page}&limit=${limit}${sortParam ? `&sortBy=${sortParam}` : ''}`);
+    
+    if (data && data.posts && data.pagination) {
+      return data;
+    }
+    
+    // Agar response to'g'ri formatda bo'lmasa
+    return {
+      posts: Array.isArray(data) ? data : [],
+      pagination: {
+        total: 0,
+        page,
+        limit,
+        pages: 0
+      }
+    };
+  } catch (error) {
+    console.error('Failed to fetch paginated posts:', error);
+    return {
+      posts: [],
+      pagination: {
+        total: 0,
+        page,
+        limit,
+        pages: 0
+      }
+    };
   }
 }
 

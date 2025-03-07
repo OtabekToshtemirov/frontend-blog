@@ -48,3 +48,16 @@ export interface PostCreateInput {
 
 export interface PostUpdateInput extends PostCreateInput {}
 
+// Yangi interfeys: pagination bilan ishlash uchun
+export interface Pagination {
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
+}
+
+export interface PaginatedResponse<T> {
+  posts: T[];
+  pagination: Pagination;
+}
+
