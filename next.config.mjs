@@ -26,6 +26,11 @@ const nextConfig = {
         pathname: '/**',
       },
       {
+        protocol: 'https',
+        hostname: 'backend-blog-ota-094ae99fb942.herokuapp.com',
+        pathname: '/images/**',
+      },
+      {
         protocol: 'http',
         hostname: 'localhost',
         port: '',
