@@ -9,21 +9,9 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '5555',
-        pathname: '/images/**',
-      },
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '4444',
-        pathname: '/images/**',
-      },
-      {
         protocol: 'https',
         hostname: 'backend-blog-x4fs.onrender.com',
-        pathname: '/**',
+        pathname: '/images/**',
       },
       {
         protocol: 'https',
@@ -33,10 +21,16 @@ const nextConfig = {
       {
         protocol: 'http',
         hostname: 'localhost',
-        port: '',
-        pathname: '/**',
-      },
+        port: '5555',
+        pathname: '/images/**',
+      }
     ],
+    unoptimized: true,
+    domains: [
+      'backend-blog-x4fs.onrender.com',
+      'backend-blog-ota-094ae99fb942.herokuapp.com',
+      'localhost'
+    ]
   }
 }
 
