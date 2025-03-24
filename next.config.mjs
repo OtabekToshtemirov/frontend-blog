@@ -6,23 +6,27 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  output: 'standalone',
+  basePath: '',
   images: {
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'backend-blog-x4fs.onrender.com',
-        pathname: 'images/*',
+        pathname: '/images/**',
+        port: '',
       },
       {
         protocol: 'https',
         hostname: 'backend-blog-ota-094ae99fb942.herokuapp.com',
-        pathname: 'images/*',
+        pathname: '/images/**',
+        port: '',
       },
       {
         protocol: 'http',
         hostname: 'localhost',
         port: '5555',
-        pathname: 'images/*',
+        pathname: '/images/**',
       }
     ],
     unoptimized: true,
